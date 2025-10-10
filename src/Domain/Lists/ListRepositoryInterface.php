@@ -13,6 +13,8 @@ interface ListRepositoryInterface
 
     public function findByIdForOwner(string $listId, string $ownerAccountId): ?GameList;
 
+    public function findById(string $listId): ?GameList;
+
     public function create(
         string $accountId,
         string $gameId,
@@ -20,4 +22,6 @@ interface ListRepositoryInterface
         ?string $description,
         bool $isPublished
     ): GameList;
+
+    public function publish(string $listId, string $ownerAccountId): ?GameList;
 }
