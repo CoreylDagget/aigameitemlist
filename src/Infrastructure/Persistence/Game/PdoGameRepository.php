@@ -38,6 +38,6 @@ final class PdoGameRepository implements GameRepositoryInterface
 
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-        return array_map(static fn(array $row) => Game::fromDatabaseRow($row), $rows ?: []);
+        return array_map(static fn (array $row) => Game::fromDatabaseRow($row), $rows ?: []);
     }
 }

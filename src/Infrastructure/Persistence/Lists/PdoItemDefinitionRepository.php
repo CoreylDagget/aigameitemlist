@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace GameItemsList\Infrastructure\Persistence\Lists;
@@ -10,6 +11,7 @@ use InvalidArgumentException;
 use PDO;
 use PDOException;
 use RuntimeException;
+
 use function mb_strtolower;
 
 final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInterface
@@ -78,7 +80,7 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
             return [];
         }
 
-        $itemIds = array_map(static fn(array $row): string => $row['id'], $rows);
+        $itemIds = array_map(static fn (array $row): string => $row['id'], $rows);
         $tags = $this->loadTagsForItems($itemIds);
 
         $items = [];

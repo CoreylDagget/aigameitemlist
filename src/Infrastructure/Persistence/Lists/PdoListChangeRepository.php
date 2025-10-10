@@ -69,7 +69,7 @@ final class PdoListChangeRepository implements ListChangeRepositoryInterface
 
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        return array_map(static fn(array $row): ListChange => ListChange::fromDatabaseRow($row), $rows);
+        return array_map(static fn (array $row): ListChange => ListChange::fromDatabaseRow($row), $rows);
     }
 
     public function findById(string $changeId): ?ListChange

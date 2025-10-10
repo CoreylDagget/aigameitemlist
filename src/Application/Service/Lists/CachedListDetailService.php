@@ -117,7 +117,7 @@ final class CachedListDetailService implements ListDetailCacheInterface
     private function formatTags(array $tags): array
     {
         return array_map(
-            static fn(Tag $tag): array => [
+            static fn (Tag $tag): array => [
                 'id' => $tag->id(),
                 'listId' => $tag->listId(),
                 'name' => $tag->name(),
