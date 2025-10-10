@@ -5,7 +5,10 @@
 /.phpstan/cache
 /.DS_Store
 .env
-.php-cs-fixer.dist.php
 /.vscode/
 /docker/php/.composer/
 /node_modules/
+/var/*
+!/var/.gitkeep
+!/var/phpunit/
+!/var/phpunit/.gitkeep
