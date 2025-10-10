@@ -29,6 +29,7 @@ use GameItemsList\Application\Security\JwtTokenService;
 use GameItemsList\Application\Service\Auth\AuthenticateAccountService;
 use GameItemsList\Application\Service\Auth\RegisterAccountService;
 use GameItemsList\Application\Service\Admin\AdminListChangeService;
+use GameItemsList\Application\Service\Admin\AdminListChangeServiceInterface;
 use GameItemsList\Application\Service\Lists\CachedListDetailService;
 use GameItemsList\Application\Service\Lists\ItemDefinitionService;
 use GameItemsList\Application\Service\Lists\ItemEntryService;
@@ -135,6 +136,7 @@ return [
     RegisterAccountService::class => autowire(),
     AuthenticateAccountService::class => autowire(),
     AdminListChangeService::class => autowire(),
+    AdminListChangeServiceInterface::class => autowire(AdminListChangeService::class),
     ListService::class => autowire(),
     ListServiceInterface::class => autowire(ListService::class),
     ListDetailCacheInterface::class => autowire(CachedListDetailService::class),
