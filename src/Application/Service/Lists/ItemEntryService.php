@@ -16,6 +16,7 @@ final class ItemEntryService
         private readonly ListService $listService,
         private readonly ItemEntryRepositoryInterface $entries,
         private readonly ItemDefinitionRepositoryInterface $itemDefinitions,
+        private readonly ListDetailCacheInterface $listDetailCache,
     ) {
     }
 
@@ -41,7 +42,11 @@ final class ItemEntryService
 
         $normalizedValue = $this->normalizeValue($item->storageType(), $value);
 
-        return $this->entries->upsert($listId, $itemId, $accountId, $normalizedValue, $item->storageType());
+        $entry = $this->entries->upsert($listId, $itemId, $accountId, $normalizedValue, $item->storageType());
+
+        $this->listDetailCache->invalidateListDetail($accountId, $listId);
+
+        return $entry;
     }
 
     private function normalizeValue(string $storageType, mixed $value): bool|int|string

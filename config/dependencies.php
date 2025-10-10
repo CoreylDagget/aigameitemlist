@@ -19,13 +19,16 @@ use GameItemsList\Application\Action\OpenApiAction;
 use GameItemsList\Application\Action\SwaggerUiAction;
 use GameItemsList\Application\Action\Tags\CreateTagAction;
 use GameItemsList\Application\Action\Tags\ListTagsAction;
+use GameItemsList\Application\Cache\CacheInterface;
 use GameItemsList\Application\Http\JsonResponder;
 use GameItemsList\Application\Middleware\AuthenticationMiddleware;
 use GameItemsList\Application\Security\JwtTokenService;
 use GameItemsList\Application\Service\Auth\AuthenticateAccountService;
 use GameItemsList\Application\Service\Auth\RegisterAccountService;
+use GameItemsList\Application\Service\Lists\CachedListDetailService;
 use GameItemsList\Application\Service\Lists\ItemDefinitionService;
 use GameItemsList\Application\Service\Lists\ItemEntryService;
+use GameItemsList\Application\Service\Lists\ListDetailCacheInterface;
 use GameItemsList\Application\Service\Lists\ListService;
 use GameItemsList\Application\Service\Lists\TagService;
 use GameItemsList\Domain\Account\AccountRepositoryInterface;
@@ -35,6 +38,7 @@ use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\ItemEntryRepositoryInterface;
 use GameItemsList\Domain\Lists\ListRepositoryInterface;
 use GameItemsList\Domain\Lists\TagRepositoryInterface;
+use GameItemsList\Infrastructure\Cache\RedisCache;
 use GameItemsList\Infrastructure\Persistence\Account\PdoAccountRepository;
 use GameItemsList\Infrastructure\Persistence\Game\PdoGameRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoListChangeRepository;
@@ -44,6 +48,8 @@ use GameItemsList\Infrastructure\Persistence\Lists\PdoItemEntryRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoTagRepository;
 use PDO;
 use Psr\Container\ContainerInterface;
+use Predis\Client;
+use Predis\ClientInterface;
 use function DI\autowire;
 
 return [
@@ -68,6 +74,25 @@ return [
 
         return $pdo;
     },
+
+    ClientInterface::class => static function (): ClientInterface {
+        $parameters = [
+            'scheme' => getenv('REDIS_SCHEME') ?: 'tcp',
+            'host' => getenv('REDIS_HOST') ?: 'redis',
+            'port' => (int) (getenv('REDIS_PORT') ?: 6379),
+        ];
+
+        $password = getenv('REDIS_PASSWORD');
+
+        if (is_string($password) && $password !== '') {
+            $parameters['password'] = $password;
+        }
+
+        return new Client($parameters);
+    },
+
+    CacheInterface::class => static fn(ContainerInterface $container): CacheInterface
+        => new RedisCache($container->get(ClientInterface::class)),
 
     JsonResponder::class => static fn(): JsonResponder => new JsonResponder(),
 
@@ -105,6 +130,7 @@ return [
     RegisterAccountService::class => autowire(),
     AuthenticateAccountService::class => autowire(),
     ListService::class => autowire(),
+    ListDetailCacheInterface::class => autowire(CachedListDetailService::class),
     TagService::class => autowire(),
     ItemDefinitionService::class => autowire(),
     ItemEntryService::class => autowire(),

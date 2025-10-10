@@ -6,7 +6,7 @@ namespace GameItemsList\Application\Action\Lists;
 
 use DomainException;
 use GameItemsList\Application\Http\JsonResponder;
-use GameItemsList\Application\Service\Lists\ListService;
+use GameItemsList\Application\Service\Lists\ListDetailCacheInterface;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -14,7 +14,7 @@ use Psr\Http\Message\ServerRequestInterface;
 final class GetListAction
 {
     public function __construct(
-        private readonly ListService $listService,
+        private readonly ListDetailCacheInterface $listDetailCache,
         private readonly JsonResponder $responder
     ) {
     }
@@ -30,26 +30,13 @@ final class GetListAction
         $accountId = (string) $request->getAttribute('account_id');
 
         try {
-            $list = $this->listService->getListForOwner($accountId, $listId);
+            $detail = $this->listDetailCache->getListDetail($accountId, $listId);
         } catch (DomainException $exception) {
             return $this->responder->problem(403, 'Forbidden', $exception->getMessage());
         } catch (InvalidArgumentException $exception) {
             return $this->responder->problem(404, 'Not Found', $exception->getMessage());
         }
 
-        return $this->responder->respond([
-            'id' => $list->id(),
-            'ownerAccountId' => $list->ownerAccountId(),
-            'game' => [
-                'id' => $list->game()->id(),
-                'name' => $list->game()->name(),
-            ],
-            'name' => $list->name(),
-            'description' => $list->description(),
-            'isPublished' => $list->isPublished(),
-            'createdAt' => $list->createdAt()->format(DATE_ATOM),
-            'tags' => [],
-            'items' => [],
-        ]);
+        return $this->responder->respond($detail);
     }
 }
