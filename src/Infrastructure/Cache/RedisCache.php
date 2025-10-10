@@ -26,7 +26,11 @@ final class RedisCache implements CacheInterface
             return null;
         }
 
-        return is_string($value) ? $value : null;
+        if (!is_string($value)) {
+            return null;
+        }
+
+        return $value;
     }
 
     public function set(string $key, string $value, int $ttl): void

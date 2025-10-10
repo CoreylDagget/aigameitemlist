@@ -14,12 +14,14 @@ use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\ItemEntry;
 use GameItemsList\Domain\Lists\ItemEntryRepositoryInterface;
 use InvalidArgumentException;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class ItemEntryServiceTest extends TestCase
 {
     public function testSetEntryPersistsBooleanValue(): void
     {
+        /** @var ListService&MockObject $listService */
         $listService = $this->createMock(ListService::class);
         $listService->expects(self::once())
             ->method('requireListOwnedByAccount')
@@ -36,6 +38,7 @@ final class ItemEntryServiceTest extends TestCase
             []
         );
 
+        /** @var ItemDefinitionRepositoryInterface&MockObject $itemDefinitions */
         $itemDefinitions = $this->createMock(ItemDefinitionRepositoryInterface::class);
         $itemDefinitions->expects(self::once())
             ->method('findByIdForList')
@@ -51,12 +54,14 @@ final class ItemEntryServiceTest extends TestCase
             new \DateTimeImmutable('2024-01-01T00:00:00Z'),
         );
 
+        /** @var ItemEntryRepositoryInterface&MockObject $entries */
         $entries = $this->createMock(ItemEntryRepositoryInterface::class);
         $entries->expects(self::once())
             ->method('upsert')
             ->with('list-1', 'item-1', 'account-1', true, ItemDefinition::STORAGE_BOOLEAN)
             ->willReturn($expectedEntry);
 
+        /** @var ListDetailCacheInterface&MockObject $listCache */
         $listCache = $this->createMock(ListDetailCacheInterface::class);
         $listCache->expects(self::once())
             ->method('invalidateListDetail')
@@ -71,6 +76,7 @@ final class ItemEntryServiceTest extends TestCase
 
     public function testSetEntryThrowsForInvalidCountValue(): void
     {
+        /** @var ListService&MockObject $listService */
         $listService = $this->createMock(ListService::class);
         $listService->method('requireListOwnedByAccount')->willReturn($this->createList());
 
@@ -84,12 +90,15 @@ final class ItemEntryServiceTest extends TestCase
             []
         );
 
+        /** @var ItemDefinitionRepositoryInterface&MockObject $itemDefinitions */
         $itemDefinitions = $this->createMock(ItemDefinitionRepositoryInterface::class);
         $itemDefinitions->method('findByIdForList')->willReturn($itemDefinition);
 
+        /** @var ItemEntryRepositoryInterface&MockObject $entries */
         $entries = $this->createMock(ItemEntryRepositoryInterface::class);
         $entries->expects(self::never())->method('upsert');
 
+        /** @var ListDetailCacheInterface&MockObject $listCache */
         $listCache = $this->createMock(ListDetailCacheInterface::class);
         $listCache->expects(self::never())->method('invalidateListDetail');
 

@@ -51,6 +51,9 @@ final class ListService
         return $this->lists->create($accountId, $gameId, $name, $description, $isPublished);
     }
 
+    /**
+     * @param array<string, mixed> $changes
+     */
     public function proposeMetadataUpdate(string $accountId, string $listId, array $changes): ListChange
     {
         $list = $this->requireListOwnedByAccount($accountId, $listId, 'You are not allowed to modify this list.');

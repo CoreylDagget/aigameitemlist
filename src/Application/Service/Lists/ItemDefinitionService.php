@@ -116,11 +116,11 @@ final class ItemDefinitionService
 
     /**
      * @param array{
-     *     name?: string,
-     *     description?: string|null,
-     *     imageUrl?: string|null,
-     *     storageType?: string,
-     *     tagIds?: string[],
+     *     name?: mixed,
+     *     description?: mixed,
+     *     imageUrl?: mixed,
+     *     storageType?: mixed,
+     *     tagIds?: mixed,
      * } $changes
      */
     public function proposeUpdateItem(
@@ -213,6 +213,7 @@ final class ItemDefinitionService
                 throw new InvalidArgumentException('tagIds must be an array of identifiers.');
             }
 
+            /** @var array<int, string>|null $tagIdsValue */
             $normalizedTagIds = $this->normalizeTagIds($listId, $tagIdsValue ?? []);
             $existingTagIds = array_map(static fn($tag) => $tag->id(), $item->tags());
 

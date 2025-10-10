@@ -14,6 +14,7 @@ use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\Tag;
 use GameItemsList\Domain\Lists\TagRepositoryInterface;
 use GameItemsList\Tests\Fixtures\InMemoryCache;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class CachedListDetailServiceTest extends TestCase
@@ -30,6 +31,7 @@ final class CachedListDetailServiceTest extends TestCase
             new \DateTimeImmutable('2024-01-01T00:00:00Z'),
         );
 
+        /** @var ListService&MockObject $listService */
         $listService = $this->createMock(ListService::class);
         $listService->expects(self::exactly(2))
             ->method('getListForOwner')
@@ -47,12 +49,14 @@ final class CachedListDetailServiceTest extends TestCase
             [$tag],
         );
 
+        /** @var TagRepositoryInterface&MockObject $tags */
         $tags = $this->createMock(TagRepositoryInterface::class);
         $tags->expects(self::once())
             ->method('findByList')
             ->with('list-1')
             ->willReturn([$tag]);
 
+        /** @var ItemDefinitionRepositoryInterface&MockObject $items */
         $items = $this->createMock(ItemDefinitionRepositoryInterface::class);
         $items->expects(self::once())
             ->method('findByList')
@@ -86,6 +90,7 @@ final class CachedListDetailServiceTest extends TestCase
             new \DateTimeImmutable('2024-01-01T00:00:00Z'),
         );
 
+        /** @var ListService&MockObject $listService */
         $listService = $this->createMock(ListService::class);
         $listService->expects(self::exactly(2))
             ->method('getListForOwner')
@@ -103,12 +108,14 @@ final class CachedListDetailServiceTest extends TestCase
             [$tag],
         );
 
+        /** @var TagRepositoryInterface&MockObject $tags */
         $tags = $this->createMock(TagRepositoryInterface::class);
         $tags->expects(self::exactly(2))
             ->method('findByList')
             ->with('list-1')
             ->willReturn([$tag]);
 
+        /** @var ItemDefinitionRepositoryInterface&MockObject $items */
         $items = $this->createMock(ItemDefinitionRepositoryInterface::class);
         $items->expects(self::exactly(2))
             ->method('findByList')
@@ -140,6 +147,7 @@ final class CachedListDetailServiceTest extends TestCase
             new \DateTimeImmutable('2024-01-01T00:00:00Z'),
         );
 
+        /** @var ListService&MockObject $listService */
         $listService = $this->createMock(ListService::class);
         $listService->expects(self::exactly(2))
             ->method('getListForOwner')
@@ -157,18 +165,21 @@ final class CachedListDetailServiceTest extends TestCase
             [$tag],
         );
 
+        /** @var TagRepositoryInterface&MockObject $tags */
         $tags = $this->createMock(TagRepositoryInterface::class);
         $tags->expects(self::once())
             ->method('findByList')
             ->with('list-1')
             ->willReturn([$tag]);
 
+        /** @var ItemDefinitionRepositoryInterface&MockObject $items */
         $items = $this->createMock(ItemDefinitionRepositoryInterface::class);
         $items->expects(self::once())
             ->method('findByList')
             ->with('list-1', null, null, null, null)
             ->willReturn([$item]);
 
+        /** @var ListDetailCacheObserverInterface&MockObject $observer */
         $observer = $this->createMock(ListDetailCacheObserverInterface::class);
         $observer->expects(self::once())
             ->method('recordMiss')

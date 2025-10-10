@@ -32,7 +32,7 @@ final class AuthenticationMiddleware implements MiddlewareInterface
 
         $token = substr($header, 7);
 
-        if ($token === false || $token === '') {
+        if ($token === '') {
             return $this->responder->problem(401, 'Unauthorized', 'Missing bearer token.');
         }
 

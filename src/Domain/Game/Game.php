@@ -22,6 +22,9 @@ final class Game
         return $this->name;
     }
 
+    /**
+     * @param array<string, mixed> $row
+     */
     public static function fromDatabaseRow(array $row): self
     {
         return new self($row['id'], $row['name']);

@@ -40,6 +40,9 @@ final class JwtTokenService
         return new IssuedToken($token, $this->ttlSeconds);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function parseToken(string $token): array
     {
         try {

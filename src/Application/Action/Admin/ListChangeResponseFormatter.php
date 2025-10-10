@@ -8,6 +8,19 @@ use GameItemsList\Domain\Lists\ListChange;
 
 trait ListChangeResponseFormatter
 {
+    /**
+     * @return array{
+     *     id: string,
+     *     listId: string,
+     *     actorAccountId: string,
+     *     type: string,
+     *     payload: array<string, mixed>,
+     *     status: string,
+     *     reviewedBy: ?string,
+     *     reviewedAt: ?string,
+     *     createdAt: string
+     * }
+     */
     private function formatChange(ListChange $change): array
     {
         return [
