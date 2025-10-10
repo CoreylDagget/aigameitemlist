@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use GameItemsList\Application\Action\Admin\ApproveChangeAction;
+use GameItemsList\Application\Action\Admin\ListChangesAction;
+use GameItemsList\Application\Action\Admin\RejectChangeAction;
 use GameItemsList\Application\Action\Auth\LoginAction;
 use GameItemsList\Application\Action\Auth\RegisterAction;
 use GameItemsList\Application\Action\HealthCheckAction;
@@ -44,5 +47,11 @@ return static function (App $app): void {
         $group->patch('/{listId}/items/{itemId}', UpdateItemAction::class);
         $group->get('/{listId}/entries', ListEntriesAction::class);
         $group->post('/{listId}/entries/{itemId}', SetEntryAction::class);
+    })->add(AuthenticationMiddleware::class);
+
+    $app->group('/v1/admin', static function (RouteCollectorProxy $group): void {
+        $group->get('/changes', ListChangesAction::class);
+        $group->post('/changes/{changeId}/approve', ApproveChangeAction::class);
+        $group->post('/changes/{changeId}/reject', RejectChangeAction::class);
     })->add(AuthenticationMiddleware::class);
 };

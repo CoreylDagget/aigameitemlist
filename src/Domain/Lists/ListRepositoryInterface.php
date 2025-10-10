@@ -24,4 +24,9 @@ interface ListRepositoryInterface
     ): GameList;
 
     public function publish(string $listId, string $ownerAccountId): ?GameList;
+
+    /**
+     * @param array{name?: string, description?: string|null} $changes
+     */
+    public function updateMetadata(string $listId, array $changes): GameList;
 }

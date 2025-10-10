@@ -7,6 +7,8 @@ namespace GameItemsList\Infrastructure\Persistence\Lists;
 use GameItemsList\Domain\Lists\Tag;
 use GameItemsList\Domain\Lists\TagRepositoryInterface;
 use PDO;
+use PDOException;
+use RuntimeException;
 
 final class PdoTagRepository implements TagRepositoryInterface
 {
@@ -50,6 +52,30 @@ final class PdoTagRepository implements TagRepositoryInterface
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         return array_map(static fn(array $row): Tag => Tag::fromDatabaseRow($row), $rows);
+    }
+
+    public function create(string $listId, string $name, ?string $color): Tag
+    {
+        try {
+            $statement = $this->pdo->prepare(
+                'INSERT INTO list_tags (list_id, name, color) VALUES (:list_id, :name, :color) RETURNING *'
+            );
+            $statement->execute([
+                'list_id' => $listId,
+                'name' => $name,
+                'color' => $color,
+            ]);
+        } catch (PDOException $exception) {
+            throw new RuntimeException('Failed to create tag', 0, $exception);
+        }
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if ($row === false) {
+            throw new RuntimeException('Failed to fetch created tag');
+        }
+
+        return Tag::fromDatabaseRow($row);
     }
 }
 

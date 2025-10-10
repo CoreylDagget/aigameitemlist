@@ -140,6 +140,59 @@ final class PdoListRepository implements ListRepositoryInterface
         return $this->findByIdForOwner($listId, $ownerAccountId);
     }
 
+    public function updateMetadata(string $listId, array $changes): GameList
+    {
+        if ($changes === []) {
+            $list = $this->findById($listId);
+
+            if ($list === null) {
+                throw new RuntimeException('List not found');
+            }
+
+            return $list;
+        }
+
+        $set = [];
+        $parameters = ['list_id' => $listId];
+
+        if (array_key_exists('name', $changes)) {
+            $set[] = 'name = :name';
+            $parameters['name'] = $changes['name'];
+        }
+
+        if (array_key_exists('description', $changes)) {
+            $set[] = 'description = :description';
+            $parameters['description'] = $changes['description'];
+        }
+
+        if ($set === []) {
+            $list = $this->findById($listId);
+
+            if ($list === null) {
+                throw new RuntimeException('List not found');
+            }
+
+            return $list;
+        }
+
+        $sql = sprintf('UPDATE lists SET %s WHERE id = :list_id RETURNING *', implode(', ', $set));
+
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute($parameters);
+        } catch (PDOException $exception) {
+            throw new RuntimeException('Failed to update list metadata', 0, $exception);
+        }
+
+        $updated = $this->findById($listId);
+
+        if ($updated === null) {
+            throw new RuntimeException('List not found after metadata update');
+        }
+
+        return $updated;
+    }
+
     private function hydrateGameList(array $row): GameList
     {
         return new GameList(

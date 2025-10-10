@@ -16,5 +16,7 @@ interface TagRepositoryInterface
      * @return Tag[]
      */
     public function findByIds(string $listId, array $tagIds): array;
+
+    public function create(string $listId, string $name, ?string $color): Tag;
 }
 

@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use GameItemsList\Application\Action\Admin\ApproveChangeAction;
+use GameItemsList\Application\Action\Admin\ListChangesAction;
+use GameItemsList\Application\Action\Admin\RejectChangeAction;
 use GameItemsList\Application\Action\Auth\LoginAction;
 use GameItemsList\Application\Action\Auth\RegisterAction;
 use GameItemsList\Application\Action\HealthCheckAction;
@@ -25,6 +28,7 @@ use GameItemsList\Application\Middleware\AuthenticationMiddleware;
 use GameItemsList\Application\Security\JwtTokenService;
 use GameItemsList\Application\Service\Auth\AuthenticateAccountService;
 use GameItemsList\Application\Service\Auth\RegisterAccountService;
+use GameItemsList\Application\Service\Admin\AdminListChangeService;
 use GameItemsList\Application\Service\Lists\CachedListDetailService;
 use GameItemsList\Application\Service\Lists\ItemDefinitionService;
 use GameItemsList\Application\Service\Lists\ItemEntryService;
@@ -129,6 +133,7 @@ return [
 
     RegisterAccountService::class => autowire(),
     AuthenticateAccountService::class => autowire(),
+    AdminListChangeService::class => autowire(),
     ListService::class => autowire(),
     ListDetailCacheInterface::class => autowire(CachedListDetailService::class),
     TagService::class => autowire(),
@@ -154,4 +159,7 @@ return [
     UpdateItemAction::class => autowire(),
     ListEntriesAction::class => autowire(),
     SetEntryAction::class => autowire(),
+    ListChangesAction::class => autowire(),
+    ApproveChangeAction::class => autowire(),
+    RejectChangeAction::class => autowire(),
 ];
