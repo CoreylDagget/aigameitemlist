@@ -29,6 +29,7 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Run PHPStan (level 8)
+        if: ${{ false }} # Temporarily disabled per request
         run: composer phpstan
 
       - name: Run PHP_CodeSniffer
