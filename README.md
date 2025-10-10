@@ -20,3 +20,11 @@ Accounts können Listen (pro Spiel) anlegen, Items und Kategorien verwalten (mit
 - PHPUnit, PHPStan, PHPCS/PHP CS Fixer
 - Xdebug (dev)
 
+## Projekt-Dokumentation
+- **Planung & Backlog**: siehe [`docs/planning/README.md`](docs/planning/README.md)
+  für Vision, Meilensteine und priorisierte Aufgaben inklusive Entry-/Exit-
+  Kriterien.
+- **Architecture Decision Records**: abgelegt unter [`docs/adr/`](docs/adr)
+  (z. B. [`0001-documentation-structure.md`](docs/adr/0001-documentation-structure.md),
+  [`0002-planning-cadence.md`](docs/adr/0002-planning-cadence.md)).
+
