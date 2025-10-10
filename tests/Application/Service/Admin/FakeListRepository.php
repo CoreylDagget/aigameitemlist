@@ -18,7 +18,7 @@ final class FakeListRepository implements ListRepositoryInterface
     /** @var array<int, array{listId: string, changes: array}> */
     public array $metadataUpdates = [];
 
-    public function findForAccount(string $accountId): array
+    public function findByOwnerAccount(string $accountId): array
     {
         throw new RuntimeException('findForAccount not implemented in fake.');
     }
@@ -28,7 +28,7 @@ final class FakeListRepository implements ListRepositoryInterface
         return $this->list;
     }
 
-    public function findByIdWithOwner(string $listId): ?GameList
+    public function findByIdForOwner(string $listId, string $ownerAccountId): ?GameList
     {
         return $this->list;
     }
@@ -43,9 +43,19 @@ final class FakeListRepository implements ListRepositoryInterface
         throw new RuntimeException('findBySlug not implemented in fake.');
     }
 
-    public function create(string $accountId, string $gameId, string $name, ?string $description): GameList
-    {
+    public function create(
+        string $accountId,
+        string $gameId,
+        string $name,
+        ?string $description,
+        bool $isPublished
+    ): GameList {
         throw new RuntimeException('create not implemented in fake.');
+    }
+
+    public function publish(string $listId, string $ownerAccountId): ?GameList
+    {
+        throw new RuntimeException('publish not implemented in fake.');
     }
 
     public function updateMetadata(string $listId, array $changes): GameList
