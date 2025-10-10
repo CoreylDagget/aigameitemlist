@@ -1,0 +1,12 @@
+includes:
+
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+    tmpDir: var/phpstan
+    checkGenericClassInNonGenericObjectType: false
+    reportUnmatchedIgnoredErrors: true
+    scanFiles:
+        - vendor/autoload.php

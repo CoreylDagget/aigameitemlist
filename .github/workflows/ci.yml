@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "work"]
+  pull_request:
+
+jobs:
+  tests:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pcov
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate --ansi
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run PHPStan (level 8)
+        run: composer phpstan
+
+      - name: Run PHP_CodeSniffer
+        run: composer phpcs
+
+      - name: Run PHP-CS-Fixer (dry run)
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+      - name: Run PHPUnit with coverage thresholds
+        run: |
+          composer test -- --coverage-text
+
+      - name: Composer audit
+        run: composer audit --no-interaction
