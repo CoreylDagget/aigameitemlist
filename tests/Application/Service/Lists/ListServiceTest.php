@@ -270,4 +270,37 @@ final class ListServiceTest extends TestCase
 
         $service->proposeMetadataUpdate('account-1', 'list-1', []);
     }
+
+    public function testProposeMetadataUpdateThrowsWhenValuesDoNotChange(): void
+    {
+        $existingList = new GameList(
+            'list-1',
+            'account-1',
+            new Game('game-1', 'Game Name'),
+            'Original Name',
+            'Original description',
+            false,
+            new \DateTimeImmutable('2024-01-01T00:00:00Z'),
+        );
+
+        $lists = $this->createMock(ListRepositoryInterface::class);
+        $lists->expects(self::once())
+            ->method('findByIdForOwner')
+            ->with('list-1', 'account-1')
+            ->willReturn($existingList);
+
+        $listChanges = $this->createMock(ListChangeRepositoryInterface::class);
+        $listChanges->expects(self::never())->method('create');
+
+        $games = $this->createStub(GameRepositoryInterface::class);
+
+        $service = new ListService($lists, $games, $listChanges);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $service->proposeMetadataUpdate('account-1', 'list-1', [
+            'name' => 'Original Name',
+            'description' => 'Original description',
+        ]);
+    }
 }

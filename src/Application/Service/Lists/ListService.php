@@ -84,7 +84,9 @@ final class ListService
                 throw new InvalidArgumentException('Name must not be empty.');
             }
 
-            $payload['name'] = $name;
+            if ($name !== $list->name()) {
+                $payload['name'] = $name;
+            }
         }
 
         if (array_key_exists('description', $changes)) {
@@ -94,7 +96,11 @@ final class ListService
                 throw new InvalidArgumentException('Description must be a string or null.');
             }
 
-            $payload['description'] = $descriptionValue === null ? null : (string) $descriptionValue;
+            $normalizedDescription = $descriptionValue === null ? null : (string) $descriptionValue;
+
+            if ($normalizedDescription !== $list->description()) {
+                $payload['description'] = $normalizedDescription;
+            }
         }
 
         if ($payload === []) {
