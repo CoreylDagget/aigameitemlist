@@ -12,6 +12,7 @@ This summary distills the immediate expectations from `AGENTS.md` and the planni
 
 ## Progress Update (Iteration 0)
 - ✅ **B1** infrastructure scaffolded: Docker Compose stack (PHP-FPM, NGINX, Postgres, Redis), Slim 4 bootstrap, health endpoint, and README onboarding instructions are now committed. Follow-up work should validate the stack via CI once additional tooling is configured.
+- 🚧 **B2** OpenAPI contract drafted: `/openapi.yaml` now captures all v1 endpoints (auth, lists, items, tags, entries, admin) plus shared schemas and RFC7807 errors. Swagger UI is exposed at `/docs` to keep the contract authoritative while implementation catches up.
 
 ## Execution Guardrails
 

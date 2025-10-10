@@ -1,0 +1,891 @@
+openapi: 3.1.0
+info:
+  title: gameitemslist API
+  version: 0.2.0
+  description: |
+    REST API for managing collaborative game item lists with admin-approved changes.
+    Authentication uses short-lived bearer JWTs.
+servers:
+  - url: https://api.gameitemslist.local
+    description: Local reverse proxy (Docker)
+  - url: http://localhost:8080
+    description: Built-in PHP server (development)
+tags:
+  - name: health
+    description: Infrastructure health endpoints
+  - name: auth
+    description: Account registration and authentication
+  - name: lists
+    description: Create and manage lists scoped to an account and game
+  - name: items
+    description: Item definition management (pending admin approval)
+  - name: tags
+    description: Tag management (pending admin approval)
+  - name: entries
+    description: Personal ownership data for items within a list
+  - name: admin
+    description: Admin approval flow for pending list changes
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Health probe
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+  /v1/auth/register:
+    post:
+      tags: [auth]
+      summary: Register a new account
+      operationId: registerAccount
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Account created and authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Account already exists
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /v1/auth/login:
+    post:
+      tags: [auth]
+      summary: Issue a JWT for an existing account
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Invalid credentials
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /v1/lists:
+    get:
+      tags: [lists]
+      summary: Lists owned by the authenticated account
+      operationId: listLists
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Collection of lists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ListSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [lists]
+      summary: Create a list for a game
+      operationId: createList
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListCreateRequest'
+      responses:
+        '201':
+          description: List created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/lists/{listId}:
+    parameters:
+      - $ref: '#/components/parameters/ListId'
+    get:
+      tags: [lists]
+      summary: Fetch a list with items and tags
+      operationId: getList
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Detailed list response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [lists]
+      summary: Propose metadata changes for a list
+      description: Creates a pending change that requires admin approval.
+      operationId: updateList
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListUpdateRequest'
+      responses:
+        '202':
+          description: Change recorded and pending approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListChange'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/lists/{listId}/items:
+    parameters:
+      - $ref: '#/components/parameters/ListId'
+    get:
+      tags: [items]
+      summary: Retrieve item definitions for the list
+      operationId: listItems
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TagFilter'
+        - $ref: '#/components/parameters/OwnedFilter'
+        - $ref: '#/components/parameters/SearchFilter'
+      responses:
+        '200':
+          description: Item definitions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ItemDefinition'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [items]
+      summary: Propose a new item definition
+      description: Stores a pending change awaiting admin approval.
+      operationId: createItem
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemDefinitionCreateRequest'
+      responses:
+        '202':
+          description: Change logged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListChange'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/lists/{listId}/items/{itemId}:
+    parameters:
+      - $ref: '#/components/parameters/ListId'
+      - $ref: '#/components/parameters/ItemId'
+    patch:
+      tags: [items]
+      summary: Propose edits to an item definition
+      description: Writes a pending change requiring admin approval.
+      operationId: updateItem
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemDefinitionUpdateRequest'
+      responses:
+        '202':
+          description: Change recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListChange'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/lists/{listId}/tags:
+    parameters:
+      - $ref: '#/components/parameters/ListId'
+    get:
+      tags: [tags]
+      summary: Retrieve tags for a list
+      operationId: listTags
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tags for the list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tag'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [tags]
+      summary: Propose a new tag
+      description: Persists a pending list change awaiting admin approval.
+      operationId: createTag
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreateRequest'
+      responses:
+        '202':
+          description: Change captured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListChange'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/lists/{listId}/entries:
+    parameters:
+      - $ref: '#/components/parameters/ListId'
+    get:
+      tags: [entries]
+      summary: Retrieve personal ownership entries for the current account
+      operationId: listEntries
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Entries for current account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ItemEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/lists/{listId}/entries/{itemId}:
+    parameters:
+      - $ref: '#/components/parameters/ListId'
+      - $ref: '#/components/parameters/ItemId'
+    post:
+      tags: [entries]
+      summary: Set personal ownership for an item
+      operationId: setEntry
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemEntrySetRequest'
+      responses:
+        '200':
+          description: Entry stored for current account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemEntry'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/lists/{listId}/publish:
+    parameters:
+      - $ref: '#/components/parameters/ListId'
+    post:
+      tags: [lists]
+      summary: Publish a list owned by the authenticated account
+      operationId: publishList
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/admin/changes:
+    get:
+      tags: [admin]
+      summary: List pending or processed changes
+      operationId: listChanges
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter changes by status. Defaults to pending.
+          required: false
+          schema:
+            $ref: '#/components/schemas/ListChangeStatus'
+      responses:
+        '200':
+          description: Changes matching the filter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ListChange'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /v1/admin/changes/{changeId}/approve:
+    parameters:
+      - $ref: '#/components/parameters/ChangeId'
+    post:
+      tags: [admin]
+      summary: Approve a pending change and materialize it
+      operationId: approveChange
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Change approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListChange'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/admin/changes/{changeId}/reject:
+    parameters:
+      - $ref: '#/components/parameters/ChangeId'
+    post:
+      tags: [admin]
+      summary: Reject a pending change
+      operationId: rejectChange
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Change rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListChange'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status, service, timestamp]
+      properties:
+        status:
+          type: string
+          example: ok
+        service:
+          type: string
+          example: gameitemslist-api
+        timestamp:
+          type: string
+          format: date-time
+    ProblemDetails:
+      type: object
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+          example: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 12
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    AuthResponse:
+      type: object
+      required: [account, tokens]
+      properties:
+        account:
+          $ref: '#/components/schemas/Account'
+        tokens:
+          $ref: '#/components/schemas/AuthTokens'
+    AuthTokens:
+      type: object
+      required: [accessToken, expiresIn]
+      properties:
+        accessToken:
+          type: string
+          description: Signed JWT access token
+        expiresIn:
+          type: integer
+          format: int32
+          description: Lifetime of the access token in seconds
+        refreshToken:
+          type: string
+          description: Optional refresh token issued during register/login
+    Account:
+      type: object
+      required: [id, email, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        createdAt:
+          type: string
+          format: date-time
+    Game:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    ListSummary:
+      type: object
+      required: [id, ownerAccountId, game, name, isPublished, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerAccountId:
+          type: string
+          format: uuid
+        game:
+          $ref: '#/components/schemas/Game'
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        isPublished:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    ListDetail:
+      allOf:
+        - $ref: '#/components/schemas/ListSummary'
+        - type: object
+          required: [tags, items]
+          properties:
+            tags:
+              type: array
+              items:
+                $ref: '#/components/schemas/Tag'
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/ItemDefinition'
+    ListCreateRequest:
+      type: object
+      required: [gameId, name]
+      properties:
+        gameId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        isPublished:
+          type: boolean
+          default: false
+    ListUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+      minProperties: 1
+    Tag:
+      type: object
+      required: [id, listId, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        listId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+          nullable: true
+    TagCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+          description: Hex color displayed in clients
+    ItemDefinition:
+      type: object
+      required: [id, listId, name, storageType]
+      properties:
+        id:
+          type: string
+          format: uuid
+        listId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+          format: uri
+        storageType:
+          $ref: '#/components/schemas/ItemStorageType'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+    ItemDefinitionCreateRequest:
+      type: object
+      required: [name, storageType]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+          format: uri
+        storageType:
+          $ref: '#/components/schemas/ItemStorageType'
+        tagIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+    ItemDefinitionUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+          format: uri
+        storageType:
+          $ref: '#/components/schemas/ItemStorageType'
+        tagIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+      minProperties: 1
+    ItemStorageType:
+      type: string
+      enum: [boolean, count, text]
+    ItemEntry:
+      type: object
+      required: [id, listId, itemDefinitionId, accountId, value, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        listId:
+          type: string
+          format: uuid
+        itemDefinitionId:
+          type: string
+          format: uuid
+        accountId:
+          type: string
+          format: uuid
+        value:
+          oneOf:
+            - type: boolean
+            - type: integer
+            - type: string
+        updatedAt:
+          type: string
+          format: date-time
+    ItemEntrySetRequest:
+      type: object
+      required: [value]
+      properties:
+        value:
+          oneOf:
+            - type: boolean
+            - type: integer
+            - type: string
+    ListChange:
+      type: object
+      required: [id, listId, actorAccountId, type, payload, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        listId:
+          type: string
+          format: uuid
+        actorAccountId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/ListChangeType'
+        payload:
+          type: object
+          description: JSON payload describing the proposed mutation
+          additionalProperties: true
+        status:
+          $ref: '#/components/schemas/ListChangeStatus'
+        reviewedBy:
+          type: string
+          format: uuid
+          nullable: true
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    ListChangeType:
+      type: string
+      enum:
+        - add_item
+        - edit_item
+        - remove_item
+        - add_tag
+        - edit_tag
+        - remove_tag
+        - list_metadata
+        - publish_toggle
+    ListChangeStatus:
+      type: string
+      enum: [pending, approved, rejected]
+    ItemId:
+      type: string
+      format: uuid
+    ListId:
+      type: string
+      format: uuid
+    ChangeId:
+      type: string
+      format: uuid
+  parameters:
+    ListId:
+      name: listId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ListId'
+    ItemId:
+      name: itemId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ItemId'
+    ChangeId:
+      name: changeId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ChangeId'
+    TagFilter:
+      name: tag
+      in: query
+      required: false
+      description: Filter items by tag identifier
+      schema:
+        type: string
+        format: uuid
+    OwnedFilter:
+      name: owned
+      in: query
+      required: false
+      description: Filter items by ownership flag
+      schema:
+        type: boolean
+    SearchFilter:
+      name: search
+      in: query
+      required: false
+      description: Free text search over item name/description
+      schema:
+        type: string
+  responses:
+    ValidationError:
+      description: Request payload failed validation
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Forbidden:
+      description: The authenticated user lacks permission
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+security:
+  - bearerAuth: []
