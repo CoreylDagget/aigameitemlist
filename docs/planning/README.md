@@ -33,18 +33,18 @@ criteria, owners, and reference links.
 
 ## Backlog
 
-| ID | Item | Description | Entry Criteria | Exit Validation | Owner / Escalation | References |
-|----|------|-------------|----------------|-----------------|--------------------|------------|
-| B1 | Development Environment Baseline | Stand up Slim 4 skeleton with Docker (PHP-FPM, NGINX, Postgres, Redis) and health endpoint. | Specs in `AGENTS.md` reviewed; Docker + PHP versions confirmed with DevOps. | `docker compose up` succeeds; `/health` returns 200; README updated with run instructions. | Primary: Backend Lead; Escalation: DevOps Lead via `#dev-env`. | AGENTS.md Deliverables §1. |
-| B2 | Authoritative OpenAPI Contract | Draft `openapi.yaml` covering all v1 endpoints including admin actions and error models. | Milestone B1 available; product + backend sign off on endpoint list. | Spec lint passes; hosted at `/docs` via Swagger UI; version tagged in repo. | Primary: API Architect; Escalation: Product Manager via weekly sync. | AGENTS.md API Requirements; README features. |
-| B3 | Auth & Account Lifecycle | Implement register/login endpoints issuing JWT, persistence in Postgres. | B1 complete; OpenAPI endpoints for auth finalized. | PHPUnit integration tests for auth pass; JWT secrets configurable; PHPStan level 8 clean. | Primary: Backend Lead; Escalation: Security Champion (`@sec-lead`). | AGENTS.md Mission; Security. |
-| B4 | List CRUD & Publishing | Implement `/v1/lists` CRUD and publish flow aligned with spec. | B2 approved; auth flow available. | GET/POST/PATCH endpoints match OpenAPI; publishing toggles `is_published`; cache invalidation hooks stubbed. | Primary: Backend Lead; Escalation: Product Manager. | AGENTS.md Endpoints; Deliverables 3. |
-| B5 | Tags & Item Definition Changes | Enable creating/editing tags and item definitions with pending `ListChange` records. | B4 deployed to dev; change review UX defined. | Pending changes recorded; admin queues reflect new entries; unit tests cover service layer. | Primary: Feature Team A; Escalation: Admin SME. | AGENTS.md Items & Tags; Approval log. |
-| B6 | Item Entries & Ownership | Provide `/entries` endpoints storing per-account ownership/quantity/text. | Data model for lists/items stable; caching strategy drafted. | Personal entries mutate immediately; responses cached per account; PHPUnit coverage ≥ 85% for module. | Primary: Feature Team B; Escalation: Data Steward. | AGENTS.md ItemEntry; Performance notes. |
-| B7 | Filters & Caching Strategy | Implement tag/owned/search filters and Redis caching + busting rules. | Redis infra validated in staging; instrumentation plan ready. | Filter queries return expected results; cache TTL 60s; invalidation tested in integration suite. | Primary: Performance Squad; Escalation: Infra Guild. | AGENTS.md Filters; Performance & Caching. |
-| B8 | Admin Approval Materialization | Build approve/reject endpoints applying pending changes transactionally. | Admin UX mockups signed off; data migration scripts ready. | Approved changes update canonical data; rejected changes audit trail intact; transactional tests pass. | Primary: Feature Team A; Escalation: Backend Lead. | AGENTS.md Admin Endpoints; Transactions. |
-| B9 | Quality Gates & CI | Configure PHPUnit, PHPStan lvl 8, PHPCS, PHP CS Fixer, composer audit, CI workflows, and coverage thresholds. | Core features merged; tooling requirements reviewed. | CI green; coverage ≥ 85% lines / 75% branches; audit clean or waivers documented. | Primary: QA Lead; Escalation: Engineering Manager. | AGENTS.md Tests & Quality Gates. |
-| B10 | Developer Experience Enhancements | Enable Xdebug in dev, document debugging workflow, add DX scripts. | Base tooling stable; developer feedback collected. | Xdebug toggled via env; docs updated; onboarding feedback cycle complete. | Primary: DevEx Advocate; Escalation: Engineering Manager. | AGENTS.md Tech Stack; Working Agreements. |
+| ID | Item | Status | Description | Entry Criteria | Exit Validation | Owner / Escalation | References |
+|----|------|--------|-------------|----------------|-----------------|--------------------|------------|
+| B1 | Development Environment Baseline | ✅ Done | Stand up Slim 4 skeleton with Docker (PHP-FPM, NGINX, Postgres, Redis) and health endpoint. | Specs in `AGENTS.md` reviewed; Docker + PHP versions confirmed with DevOps. | `docker compose up` succeeds; `/health` returns 200; README updated with run instructions. | Primary: Backend Lead; Escalation: DevOps Lead via `#dev-env`. | AGENTS.md Deliverables §1. |
+| B2 | Authoritative OpenAPI Contract | ✅ Done | Draft `openapi.yaml` covering all v1 endpoints including admin actions and error models. | Milestone B1 available; product + backend sign off on endpoint list. | Spec lint passes; hosted at `/docs` via Swagger UI; version tagged in repo. | Primary: API Architect; Escalation: Product Manager via weekly sync. | AGENTS.md API Requirements; README features. |
+| B3 | Auth & Account Lifecycle | ✅ Done | Implement register/login endpoints issuing JWT, persistence in Postgres. | B1 complete; OpenAPI endpoints for auth finalized. | PHPUnit integration tests for auth pass; JWT secrets configurable; PHPStan level 8 clean. | Primary: Backend Lead; Escalation: Security Champion (`@sec-lead`). | AGENTS.md Mission; Security; ADR-0003. |
+| B4 | List CRUD & Publishing | ✅ Done | Implement `/v1/lists` CRUD and publish flow aligned with spec. | B2 approved; auth flow available. | GET/POST/PATCH endpoints match OpenAPI; publishing toggles `is_published`; cache invalidation hooks stubbed. | Primary: Backend Lead; Escalation: Product Manager. | AGENTS.md Endpoints; Deliverables 3. |
+| B5 | Tags & Item Definition Changes | ✅ Done | Enable creating/editing tags and item definitions with pending `ListChange` records. | B4 deployed to dev; change review UX defined. | Pending changes recorded; admin queues reflect new entries; unit tests cover service layer. | Primary: Feature Team A; Escalation: Admin SME. | AGENTS.md Items & Tags; Approval log; ADR-0003. |
+| B6 | Item Entries & Ownership | ✅ Done | Provide `/entries` endpoints storing per-account ownership/quantity/text. | Data model for lists/items stable; caching strategy drafted. | Personal entries mutate immediately; responses cached per account; PHPUnit coverage ≥ 85% for module. | Primary: Feature Team B; Escalation: Data Steward. | AGENTS.md ItemEntry; Performance notes. |
+| B7 | Filters & Caching Strategy | 🚧 In Arbeit | Implement tag/owned/search filters and Redis caching + busting rules. | Redis infra validated in staging; instrumentation plan ready. | Filter queries return expected results; cache TTL 60s; invalidation tested in integration suite. | Primary: Performance Squad; Escalation: Infra Guild. | AGENTS.md Filters; Performance & Caching. |
+| B8 | Admin Approval Materialization | ⏳ Offen | Build approve/reject endpoints applying pending changes transactionally. | Admin UX mockups signed off; data migration scripts ready. | Approved changes update canonical data; rejected changes audit trail intact; transactional tests pass. | Primary: Feature Team A; Escalation: Backend Lead. | AGENTS.md Admin Endpoints; Transactions. |
+| B9 | Quality Gates & CI | ⏳ Offen | Configure PHPUnit, PHPStan lvl 8, PHPCS, PHP CS Fixer, composer audit, CI workflows, and coverage thresholds. | Core features merged; tooling requirements reviewed. | CI green; coverage ≥ 85% lines / 75% branches; audit clean or waivers documented. | Primary: QA Lead; Escalation: Engineering Manager. | AGENTS.md Tests & Quality Gates; ADR-0004. |
+| B10 | Developer Experience Enhancements | ⏳ Offen | Enable Xdebug in dev, document debugging workflow, add DX scripts. | Base tooling stable; developer feedback collected. | Xdebug toggled via env; docs updated; onboarding feedback cycle complete. | Primary: DevEx Advocate; Escalation: Engineering Manager. | AGENTS.md Tech Stack; Working Agreements. |
 
 ### Backlog Maintenance
 
@@ -63,9 +63,19 @@ criteria, owners, and reference links.
 
 Owners should track answers in new ADRs or inline updates here.
 
+## Quality Gate Status (lokal)
+
+| Gate | Command | Status | Notizen |
+|------|---------|--------|---------|
+| Tests | `composer test` | 🚧 Geplant | Test-Skelett angelegt, Szenarien folgen nach Admin-Workflow (siehe B8/B9). |
+| PHPStan | `composer phpstan` | ✅ Konfiguriert | Läuft lokal gegen `src/` & `tests/` sobald Use-Cases ergänzt werden. |
+| PHPCS | `composer phpcs` | ✅ Konfiguriert | PSR-12 Konfiguration aktiv; Fixes via `composer fix`. |
+| Composer Audit | `composer audit` | ⏳ Offen | Wird vor Release in CI integriert, momentan manuell bei Dependency-Updates. |
+
 ## Change Log
 
 | Date | Change | Author |
 |------|--------|--------|
 | 2024-03-XX | Initial backlog + planning baseline. | AI Agent |
+| 2024-04-XX | Backlog-Status aktualisiert, Quality-Gate-Tabelle ergänzt. | AI Agent |
 
