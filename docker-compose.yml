@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    container_name: gil-php
+    volumes:
+      - ./:/var/www/html:cached
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_TIMEZONE: ${APP_TIMEZONE:-UTC}
+    expose:
+      - "9000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    container_name: gil-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html:cached
+    depends_on:
+      app:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    container_name: gil-postgres
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-gameitemslist}
+      POSTGRES_USER: ${DB_USERNAME:-gameitemslist}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: gil-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+
+volumes:
+  db_data:
+  redis_data:
