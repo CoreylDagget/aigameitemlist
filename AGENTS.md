@@ -8,7 +8,7 @@ Build **gameitemslist**: a web app and API to create and manage per-game item li
 - **Framework:** Slim 4
 - **HTTP Server:** NGINX
 - **Runtime:** Dockerized (PHP-FPM, NGINX, DB, Redis)
-- **DB:** PostgreSQL (preferred) or MySQL (if specified)
+- **DB:** MySQL/MariaDB (preferred) with PostgreSQL as a supported fallback
 - **Cache:** Redis
 - **Docs:** OpenAPI 3.1 (Swagger UI)
 - **Testing:** PHPUnit (unit + integration), Pest optional
