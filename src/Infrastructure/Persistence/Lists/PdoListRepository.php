@@ -30,6 +30,28 @@ final class PdoListRepository implements ListRepositoryInterface
         return array_map([$this, 'hydrateGameList'], $rows);
     }
 
+    public function findByIdForOwner(string $listId, string $ownerAccountId): ?GameList
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT l.*, g.id AS game_id, g.name AS game_name FROM lists l '
+            . 'JOIN games g ON g.id = l.game_id '
+            . 'WHERE l.id = :listId AND l.account_id = :accountId '
+            . 'LIMIT 1'
+        );
+        $statement->execute([
+            'listId' => $listId,
+            'accountId' => $ownerAccountId,
+        ]);
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if ($row === false) {
+            return null;
+        }
+
+        return $this->hydrateGameList($row);
+    }
+
     public function create(
         string $accountId,
         string $gameId,

@@ -25,6 +25,17 @@ final class ListService
         return $this->lists->findByOwnerAccount($accountId);
     }
 
+    public function getListForOwner(string $accountId, string $listId): GameList
+    {
+        $list = $this->lists->findByIdForOwner($listId, $accountId);
+
+        if ($list === null) {
+            throw new InvalidArgumentException('List not found');
+        }
+
+        return $list;
+    }
+
     public function createList(
         string $accountId,
         string $gameId,

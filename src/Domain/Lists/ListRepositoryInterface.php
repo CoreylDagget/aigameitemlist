@@ -11,6 +11,8 @@ interface ListRepositoryInterface
      */
     public function findByOwnerAccount(string $accountId): array;
 
+    public function findByIdForOwner(string $listId, string $ownerAccountId): ?GameList;
+
     public function create(
         string $accountId,
         string $gameId,
