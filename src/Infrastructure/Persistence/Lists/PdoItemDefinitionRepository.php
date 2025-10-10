@@ -9,6 +9,7 @@ use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\Tag;
 use InvalidArgumentException;
 use PDO;
+use function mb_strtolower;
 
 final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInterface
 {
@@ -35,8 +36,11 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
         }
 
         if ($search !== null && $search !== '') {
-            $conditions[] = '(i.name ILIKE :search OR i.description ILIKE :search)';
-            $parameters['search'] = '%' . $search . '%';
+            $conditions[] = "(
+                LOWER(i.name) LIKE :search
+                OR LOWER(COALESCE(i.description, '')) LIKE :search
+            )";
+            $parameters['search'] = '%' . mb_strtolower($search, 'UTF-8') . '%';
         }
 
         if ($owned !== null) {
