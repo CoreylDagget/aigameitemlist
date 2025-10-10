@@ -21,6 +21,9 @@ final class ApproveChangeAction
     ) {
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     public function __invoke(ServerRequestInterface $request, array $args): ResponseInterface
     {
         $changeId = isset($args['changeId']) ? (string) $args['changeId'] : '';

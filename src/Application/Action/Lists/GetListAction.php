@@ -19,6 +19,9 @@ final class GetListAction
     ) {
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     public function __invoke(ServerRequestInterface $request, array $args): ResponseInterface
     {
         $listId = isset($args['listId']) ? (string) $args['listId'] : '';

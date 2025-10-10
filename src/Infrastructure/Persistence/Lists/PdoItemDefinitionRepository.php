@@ -73,7 +73,7 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
         $statement = $this->pdo->prepare($sql);
         $statement->execute($parameters);
 
-        $rows = $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         if ($rows === []) {
             return [];
@@ -198,7 +198,14 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
         }
 
         if (array_key_exists('tagIds', $changes)) {
-            $tagIds = is_array($changes['tagIds']) ? $changes['tagIds'] : [];
+            $tagIdsValue = $changes['tagIds'];
+
+            if (!is_array($tagIdsValue)) {
+                throw new RuntimeException('tagIds change must be an array of strings.');
+            }
+
+            /** @var string[] $tagIds */
+            $tagIds = $tagIdsValue;
             $this->syncTags($itemId, $tagIds);
         }
 

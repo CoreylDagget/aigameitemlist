@@ -24,7 +24,7 @@ final class RegisterAccountService
 
         $passwordHash = password_hash($password, PASSWORD_ARGON2ID);
 
-        if ($passwordHash === false) {
+        if (!is_string($passwordHash)) {
             throw new InvalidArgumentException('Unable to hash password');
         }
 

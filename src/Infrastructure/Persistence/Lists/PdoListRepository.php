@@ -193,6 +193,9 @@ final class PdoListRepository implements ListRepositoryInterface
         return $updated;
     }
 
+    /**
+     * @param array<string, mixed> $row
+     */
     private function hydrateGameList(array $row): GameList
     {
         return new GameList(

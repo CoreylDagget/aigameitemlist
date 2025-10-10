@@ -237,6 +237,9 @@ final class AdminListChangeServiceTest extends TestCase
         $this->service->approveChange('change-1', 'reviewer-1');
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function createChange(
         string $status,
         string $type = ListChange::TYPE_ADD_TAG,

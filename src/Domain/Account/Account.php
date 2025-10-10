@@ -34,6 +34,9 @@ final class Account
         return $this->createdAt;
     }
 
+    /**
+     * @param array<string, mixed> $row
+     */
     public static function fromDatabaseRow(array $row): self
     {
         return new self(

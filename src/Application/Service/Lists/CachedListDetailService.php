@@ -30,6 +30,27 @@ final class CachedListDetailService implements ListDetailCacheInterface
         $this->observer = $observer ?? new NullListDetailCacheObserver();
     }
 
+    /**
+     * @return array{
+     *     id: string,
+     *     ownerAccountId: string,
+     *     game: array{id: string, name: string},
+     *     name: string,
+     *     description: ?string,
+     *     isPublished: bool,
+     *     createdAt: string,
+     *     tags: array<int, array{id: string, listId: string, name: string, color: ?string}>,
+     *     items: array<int, array{
+     *         id: string,
+     *         listId: string,
+     *         name: string,
+     *         description: ?string,
+     *         imageUrl: ?string,
+     *         storageType: string,
+     *         tags: array<int, array{id: string, listId: string, name: string, color: ?string}>
+     *     }>
+     * }
+     */
     public function getListDetail(string $accountId, string $listId): array
     {
         $list = $this->listService->getListForOwner($accountId, $listId);
@@ -141,6 +162,9 @@ final class CachedListDetailService implements ListDetailCacheInterface
         return self::CACHE_PREFIX . $accountId . ':' . $listId;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     private function loadFromCache(string $key): ?array
     {
         try {
@@ -162,6 +186,9 @@ final class CachedListDetailService implements ListDetailCacheInterface
         return is_array($decoded) ? $decoded : null;
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function storeInCache(string $key, array $payload): bool
     {
         if ($this->ttlSeconds <= 0) {
