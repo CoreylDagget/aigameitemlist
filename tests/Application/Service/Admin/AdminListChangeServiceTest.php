@@ -66,12 +66,14 @@ final class AdminListChangeServiceTest extends TestCase
     {
         $pending = $this->createChange(
             'change-3',
+            listId: 'list-12',
             type: ListChange::TYPE_ADD_TAG,
             payload: ['name' => 'Support', 'color' => '#aabbcc'],
         );
 
         $approved = $this->createChange(
             'change-3',
+            listId: 'list-12',
             status: ListChange::STATUS_APPROVED,
             reviewedBy: 'reviewer-9',
         );
