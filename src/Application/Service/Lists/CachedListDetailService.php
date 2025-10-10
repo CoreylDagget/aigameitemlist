@@ -17,13 +17,17 @@ final class CachedListDetailService implements ListDetailCacheInterface
     private const CACHE_PREFIX = 'gil:list-detail:v1:';
     private const DEFAULT_TTL = 60;
 
+    private ListDetailCacheObserverInterface $observer;
+
     public function __construct(
         private readonly ListService $listService,
         private readonly TagRepositoryInterface $tags,
         private readonly ItemDefinitionRepositoryInterface $items,
         private readonly CacheInterface $cache,
         private readonly int $ttlSeconds = self::DEFAULT_TTL,
+        ?ListDetailCacheObserverInterface $observer = null,
     ) {
+        $this->observer = $observer ?? new NullListDetailCacheObserver();
     }
 
     public function getListDetail(string $accountId, string $listId): array
@@ -34,6 +38,8 @@ final class CachedListDetailService implements ListDetailCacheInterface
         $cachedPayload = $this->loadFromCache($cacheKey);
 
         if ($cachedPayload === null) {
+            $this->observer->recordMiss($accountId, $listId);
+
             $tags = $this->tags->findByList($listId);
             $items = $this->items->findByList($listId);
 
@@ -42,8 +48,12 @@ final class CachedListDetailService implements ListDetailCacheInterface
                 'items' => $this->formatItems($items),
             ];
 
-            $this->storeInCache($cacheKey, $payload);
+            if ($this->storeInCache($cacheKey, $payload)) {
+                $this->observer->recordStore($accountId, $listId, $this->ttlSeconds);
+            }
         } else {
+            $this->observer->recordHit($accountId, $listId);
+
             $payload = [
                 'tags' => is_array($cachedPayload['tags'] ?? null) ? $cachedPayload['tags'] : [],
                 'items' => is_array($cachedPayload['items'] ?? null) ? $cachedPayload['items'] : [],
@@ -75,6 +85,8 @@ final class CachedListDetailService implements ListDetailCacheInterface
         } catch (Throwable) {
             // Ignore cache failures; fall back to cold fetches.
         }
+
+        $this->observer->recordInvalidate($accountId, $listId);
     }
 
     /**
@@ -150,10 +162,10 @@ final class CachedListDetailService implements ListDetailCacheInterface
         return is_array($decoded) ? $decoded : null;
     }
 
-    private function storeInCache(string $key, array $payload): void
+    private function storeInCache(string $key, array $payload): bool
     {
         if ($this->ttlSeconds <= 0) {
-            return;
+            return false;
         }
 
         try {
@@ -161,7 +173,11 @@ final class CachedListDetailService implements ListDetailCacheInterface
             $this->cache->set($key, $encoded, $this->ttlSeconds);
         } catch (Throwable) {
             // Ignore cache failures; fall back to cold fetches.
+
+            return false;
         }
+
+        return true;
     }
 }
 

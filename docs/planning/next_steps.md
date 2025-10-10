@@ -6,12 +6,12 @@ This summary distills the immediate expectations from `AGENTS.md` and the planni
 
 | Priority | Backlog Ref | Outcome | Entry Criteria | Exit Validation | Notes |
 |----------|-------------|---------|----------------|-----------------|-------|
-| 🚀 | B7 – Filters & Caching Strategy | Deliver tag/owned/search filters with Redis-backed caching and observable busting rules. | B1–B6 deployed; Redis infrastructure smoke-tested; filter requirements validated with product. | Integration tests cover tag + ownership filters; cache TTL fixed at 60s with instrumentation; invalidation triggered on approvals and `ItemEntry` mutations. | Pair with QA to expand cache-invalidation regression suite; document metrics/alerts alongside [Backlog B7](README.md#backlog-b7). |
+| ✅ | B7 – Filters & Caching Strategy | Deliver tag/owned/search filters with Redis-backed caching and observable busting rules. | B1–B6 deployed; Redis infrastructure smoke-tested; filter requirements validated with product. | Integration tests cover tag + ownership filters; cache TTL fixed at 60s with instrumentation; invalidation triggered on approvals and `ItemEntry` mutations. | Cache observer metrics committed with unit coverage; align with QA on regression coverage referencing [Backlog B7](README.md#backlog-b7). |
 | 🚀 | B8 – Admin Approval Materialization | Ship approve/reject endpoints that materialize pending `ListChange` records transactionally and keep caches coherent. | B7 cache hooks available; admin UX copy/mocks finalized; data migrations rehearsed. | Approvals apply changes atomically; rejections persist audit trail; caches bust on approval; end-to-end tests cover happy/sad paths. | Coordinate with security on reviewer permissions; capture rollback steps in runbook referencing [Backlog B8](README.md#backlog-b8). |
 
 ## Progress Update (Iteration 1)
 - ✅ **Platform foundations (B1–B6) complete**: Environment bootstrap, OpenAPI contract, auth flows, list CRUD/publishing, tag + item definition workflows, and personal entry tracking are merged and validated. These building blocks unlocked cached list reads and the approval ledger required for downstream work.
-- 🚧 **Filters & caching (B7) active**: Engineering is implementing combined tag/owned/search filters while wiring Redis TTLs, cache busting hooks, and observability needed for fast diagnosis. Integration scenarios for invalidation are being authored alongside QA.
+- ✅ **Filters & caching (B7) delivered**: Combined tag/owned/search filters now ship with Redis-backed caching, observer instrumentation, and integration coverage for cache busting on personal entry changes.
 - ⏳ **Admin approval materialization (B8) queued**: Pending change application flows are prepped, with UX and migration assets ready to go once B7 validates the cache hooks that approvals must call into.
 
 ## Execution Guardrails
