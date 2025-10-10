@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GameItemsList\Application\Action\Lists;
 
 use GameItemsList\Application\Http\JsonResponder;
-use GameItemsList\Application\Service\Lists\ListService;
+use GameItemsList\Application\Service\Lists\ListServiceInterface;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -13,7 +13,7 @@ use Psr\Http\Message\ServerRequestInterface;
 final class CreateListAction
 {
     public function __construct(
-        private readonly ListService $listService,
+        private readonly ListServiceInterface $listService,
         private readonly JsonResponder $responder
     ) {
     }
@@ -37,7 +37,12 @@ final class CreateListAction
         }
 
         if ($errors !== []) {
-            return $this->responder->problem(400, 'Invalid request', 'Validation failed.', additional: ['errors' => $errors]);
+            return $this->responder->problem(
+                400,
+                'Invalid request',
+                'Validation failed.',
+                additional: ['errors' => $errors],
+            );
         }
 
         $accountId = (string) $request->getAttribute('account_id');

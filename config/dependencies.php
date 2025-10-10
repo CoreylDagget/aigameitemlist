@@ -34,6 +34,7 @@ use GameItemsList\Application\Service\Lists\ItemDefinitionService;
 use GameItemsList\Application\Service\Lists\ItemEntryService;
 use GameItemsList\Application\Service\Lists\ListDetailCacheInterface;
 use GameItemsList\Application\Service\Lists\ListService;
+use GameItemsList\Application\Service\Lists\ListServiceInterface;
 use GameItemsList\Application\Service\Lists\TagService;
 use GameItemsList\Domain\Account\AccountRepositoryInterface;
 use GameItemsList\Domain\Game\GameRepositoryInterface;
@@ -135,6 +136,7 @@ return [
     AuthenticateAccountService::class => autowire(),
     AdminListChangeService::class => autowire(),
     ListService::class => autowire(),
+    ListServiceInterface::class => autowire(ListService::class),
     ListDetailCacheInterface::class => autowire(CachedListDetailService::class),
     TagService::class => autowire(),
     ItemDefinitionService::class => autowire(),

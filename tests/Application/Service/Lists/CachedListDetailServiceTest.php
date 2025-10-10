@@ -6,7 +6,7 @@ namespace GameItemsList\Tests\Application\Service\Lists;
 
 use GameItemsList\Application\Service\Lists\CachedListDetailService;
 use GameItemsList\Application\Service\Lists\ListDetailCacheObserverInterface;
-use GameItemsList\Application\Service\Lists\ListService;
+use GameItemsList\Application\Service\Lists\ListServiceInterface;
 use GameItemsList\Domain\Game\Game;
 use GameItemsList\Domain\Lists\GameList;
 use GameItemsList\Domain\Lists\ItemDefinition;
@@ -31,8 +31,8 @@ final class CachedListDetailServiceTest extends TestCase
             new \DateTimeImmutable('2024-01-01T00:00:00Z'),
         );
 
-        /** @var MockObject&ListService $listService */
-        $listService = $this->createMock(ListService::class);
+        /** @var MockObject&ListServiceInterface $listService */
+        $listService = $this->createMock(ListServiceInterface::class);
         $listService->expects(self::exactly(2))
             ->method('getListForOwner')
             ->with('account-1', 'list-1')
@@ -90,8 +90,8 @@ final class CachedListDetailServiceTest extends TestCase
             new \DateTimeImmutable('2024-01-01T00:00:00Z'),
         );
 
-        /** @var MockObject&ListService $listService */
-        $listService = $this->createMock(ListService::class);
+        /** @var MockObject&ListServiceInterface $listService */
+        $listService = $this->createMock(ListServiceInterface::class);
         $listService->expects(self::exactly(2))
             ->method('getListForOwner')
             ->with('account-1', 'list-1')
@@ -147,8 +147,8 @@ final class CachedListDetailServiceTest extends TestCase
             new \DateTimeImmutable('2024-01-01T00:00:00Z'),
         );
 
-        /** @var MockObject&ListService $listService */
-        $listService = $this->createMock(ListService::class);
+        /** @var MockObject&ListServiceInterface $listService */
+        $listService = $this->createMock(ListServiceInterface::class);
         $listService->expects(self::exactly(2))
             ->method('getListForOwner')
             ->with('account-1', 'list-1')
@@ -203,4 +203,3 @@ final class CachedListDetailServiceTest extends TestCase
         $service->invalidateListDetail('account-1', 'list-1');
     }
 }
-

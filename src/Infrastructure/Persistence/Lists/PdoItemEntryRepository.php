@@ -109,4 +109,3 @@ final class PdoItemEntryRepository implements ItemEntryRepositoryInterface
         return ItemEntry::fromDatabaseRow($row);
     }
 }
-

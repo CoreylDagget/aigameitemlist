@@ -24,4 +24,3 @@ interface ListChangeRepositoryInterface
 
     public function markRejected(string $changeId, string $reviewerAccountId): ListChange;
 }
-

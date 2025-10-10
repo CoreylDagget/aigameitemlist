@@ -6,7 +6,7 @@ namespace GameItemsList\Application\Action\Lists;
 
 use DomainException;
 use GameItemsList\Application\Http\JsonResponder;
-use GameItemsList\Application\Service\Lists\ListService;
+use GameItemsList\Application\Service\Lists\ListServiceInterface;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -14,7 +14,7 @@ use Psr\Http\Message\ServerRequestInterface;
 final class UpdateListAction
 {
     public function __construct(
-        private readonly ListService $listService,
+        private readonly ListServiceInterface $listService,
         private readonly JsonResponder $responder
     ) {
     }
@@ -94,4 +94,3 @@ final class UpdateListAction
         ], 202);
     }
 }
-

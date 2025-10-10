@@ -13,7 +13,7 @@ use GameItemsList\Domain\Lists\ListRepositoryInterface;
 use InvalidArgumentException;
 use RuntimeException;
 
-final class ListService
+final class ListService implements ListServiceInterface
 {
     public function __construct(
         private readonly ListRepositoryInterface $lists,

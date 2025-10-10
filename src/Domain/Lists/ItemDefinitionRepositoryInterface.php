@@ -42,4 +42,3 @@ interface ItemDefinitionRepositoryInterface
      */
     public function update(string $itemId, string $listId, array $changes): ItemDefinition;
 }
-

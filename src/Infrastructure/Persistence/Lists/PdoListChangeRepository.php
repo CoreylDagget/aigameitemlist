@@ -161,4 +161,3 @@ final class PdoListChangeRepository implements ListChangeRepositoryInterface
         return ListChange::fromDatabaseRow($row);
     }
 }
-

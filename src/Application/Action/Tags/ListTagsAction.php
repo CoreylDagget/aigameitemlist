@@ -53,4 +53,3 @@ final class ListTagsAction
         return $this->responder->respond(['data' => $data]);
     }
 }
-

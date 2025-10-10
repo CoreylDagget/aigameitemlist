@@ -20,7 +20,7 @@ final class CachedListDetailService implements ListDetailCacheInterface
     private ListDetailCacheObserverInterface $observer;
 
     public function __construct(
-        private readonly ListService $listService,
+        private readonly ListServiceInterface $listService,
         private readonly TagRepositoryInterface $tags,
         private readonly ItemDefinitionRepositoryInterface $items,
         private readonly CacheInterface $cache,
@@ -207,4 +207,3 @@ final class CachedListDetailService implements ListDetailCacheInterface
         return true;
     }
 }
-

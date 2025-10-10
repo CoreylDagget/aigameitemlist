@@ -13,7 +13,7 @@ use InvalidArgumentException;
 final class TagService
 {
     public function __construct(
-        private readonly ListService $listService,
+        private readonly ListServiceInterface $listService,
         private readonly TagRepositoryInterface $tags,
         private readonly ListChangeRepositoryInterface $listChanges,
     ) {
@@ -64,4 +64,3 @@ final class TagService
         );
     }
 }
-

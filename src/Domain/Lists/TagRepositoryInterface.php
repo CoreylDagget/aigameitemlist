@@ -19,4 +19,3 @@ interface TagRepositoryInterface
 
     public function create(string $listId, string $name, ?string $color): Tag;
 }
-
