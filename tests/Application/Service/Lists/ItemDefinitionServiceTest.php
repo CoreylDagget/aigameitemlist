@@ -7,6 +7,7 @@ namespace GameItemsList\Tests\Application\Service\Lists;
 use DateTimeImmutable;
 use GameItemsList\Application\Service\Lists\ItemDefinitionService;
 use GameItemsList\Application\Service\Lists\ListServiceInterface;
+use GameItemsList\Domain\Game\Game;
 use GameItemsList\Domain\Lists\GameList;
 use GameItemsList\Domain\Lists\ItemDefinition;
 use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
@@ -57,7 +58,7 @@ final class ItemDefinitionServiceTest extends TestCase
             ->expects(self::once())
             ->method('requireListOwnedByAccount')
             ->with('account-1', 'list-1', 'You are not allowed to view this list.')
-            ->willReturn($this->createStub(GameList::class));
+            ->willReturn($this->createGameList('list-1', 'account-1'));
 
         $expected = ['item'];
 
@@ -78,7 +79,7 @@ final class ItemDefinitionServiceTest extends TestCase
             ->expects(self::once())
             ->method('requireListOwnedByAccount')
             ->with('account-2', 'list-5', 'You are not allowed to view this list.')
-            ->willReturn($this->createStub(GameList::class));
+            ->willReturn($this->createGameList('list-5', 'account-2'));
 
         $expected = [];
 
@@ -99,7 +100,7 @@ final class ItemDefinitionServiceTest extends TestCase
             ->expects(self::once())
             ->method('requireListOwnedByAccount')
             ->with('account-1', 'list-1', 'You are not allowed to modify this list.')
-            ->willReturn($this->createStub(GameList::class));
+            ->willReturn($this->createGameList('list-1', 'account-1'));
 
         $this->tags
             ->expects(self::once())
@@ -152,7 +153,7 @@ final class ItemDefinitionServiceTest extends TestCase
             ->expects(self::once())
             ->method('requireListOwnedByAccount')
             ->with('account-1', 'list-1', 'You are not allowed to modify this list.')
-            ->willReturn($this->createStub(GameList::class));
+            ->willReturn($this->createGameList('list-1', 'account-1'));
 
         $this->tags
             ->expects(self::once())
@@ -180,7 +181,7 @@ final class ItemDefinitionServiceTest extends TestCase
             ->expects(self::once())
             ->method('requireListOwnedByAccount')
             ->with('account-3', 'list-9', 'You are not allowed to modify this list.')
-            ->willReturn($this->createStub(GameList::class));
+            ->willReturn($this->createGameList('list-9', 'account-3'));
 
         $existingTags = [new Tag('tag-1', 'list-9', 'Existing', null)];
         $existingItem = new ItemDefinition(
@@ -254,7 +255,7 @@ final class ItemDefinitionServiceTest extends TestCase
             ->expects(self::once())
             ->method('requireListOwnedByAccount')
             ->with('account-4', 'list-3', 'You are not allowed to modify this list.')
-            ->willReturn($this->createStub(GameList::class));
+            ->willReturn($this->createGameList('list-3', 'account-4'));
 
         $tag = new Tag('tag-1', 'list-3', 'Existing', null);
         $existingItem = new ItemDefinition(
@@ -308,6 +309,19 @@ final class ItemDefinitionServiceTest extends TestCase
             $type,
             $payload,
             ListChange::STATUS_PENDING,
+            new DateTimeImmutable(),
+        );
+    }
+
+    private function createGameList(string $listId, string $ownerAccountId): GameList
+    {
+        return new GameList(
+            $listId,
+            $ownerAccountId,
+            new Game('game-1', 'Example Game'),
+            'Example List',
+            null,
+            false,
             new DateTimeImmutable(),
         );
     }
