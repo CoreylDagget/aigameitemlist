@@ -9,6 +9,7 @@ use GameItemsList\Application\Action\Lists\CreateListAction;
 use GameItemsList\Application\Action\Lists\ListIndexAction;
 use GameItemsList\Application\Action\Lists\GetListAction;
 use GameItemsList\Application\Action\Lists\PublishListAction;
+use GameItemsList\Application\Action\Lists\UpdateListAction;
 use GameItemsList\Application\Action\OpenApiAction;
 use GameItemsList\Application\Action\SwaggerUiAction;
 use GameItemsList\Application\Middleware\AuthenticationMiddleware;
@@ -27,6 +28,7 @@ return static function (App $app): void {
         $group->get('', ListIndexAction::class);
         $group->post('', CreateListAction::class);
         $group->get('/{listId}', GetListAction::class);
+        $group->patch('/{listId}', UpdateListAction::class);
         $group->post('/{listId}/publish', PublishListAction::class);
     })->add(AuthenticationMiddleware::class);
 };

@@ -7,6 +7,8 @@ namespace GameItemsList\Application\Service\Lists;
 use DomainException;
 use GameItemsList\Domain\Game\GameRepositoryInterface;
 use GameItemsList\Domain\Lists\GameList;
+use GameItemsList\Domain\Lists\ListChange;
+use GameItemsList\Domain\Lists\ListChangeRepositoryInterface;
 use GameItemsList\Domain\Lists\ListRepositoryInterface;
 use InvalidArgumentException;
 use RuntimeException;
@@ -15,7 +17,8 @@ final class ListService
 {
     public function __construct(
         private readonly ListRepositoryInterface $lists,
-        private readonly GameRepositoryInterface $games
+        private readonly GameRepositoryInterface $games,
+        private readonly ListChangeRepositoryInterface $listChanges
     ) {
     }
 
@@ -52,6 +55,58 @@ final class ListService
         }
 
         return $this->lists->create($accountId, $gameId, $name, $description, $isPublished);
+    }
+
+    public function proposeMetadataUpdate(string $accountId, string $listId, array $changes): ListChange
+    {
+        $list = $this->lists->findByIdForOwner($listId, $accountId);
+
+        if ($list === null) {
+            $existing = $this->lists->findById($listId);
+
+            if ($existing === null) {
+                throw new InvalidArgumentException('List not found');
+            }
+
+            throw new DomainException('You are not allowed to modify this list.');
+        }
+
+        if (!array_key_exists('name', $changes) && !array_key_exists('description', $changes)) {
+            throw new InvalidArgumentException('No changes provided.');
+        }
+
+        $payload = [];
+
+        if (array_key_exists('name', $changes)) {
+            $name = trim((string) $changes['name']);
+
+            if ($name === '') {
+                throw new InvalidArgumentException('Name must not be empty.');
+            }
+
+            $payload['name'] = $name;
+        }
+
+        if (array_key_exists('description', $changes)) {
+            $descriptionValue = $changes['description'];
+
+            if ($descriptionValue !== null && !is_string($descriptionValue)) {
+                throw new InvalidArgumentException('Description must be a string or null.');
+            }
+
+            $payload['description'] = $descriptionValue === null ? null : (string) $descriptionValue;
+        }
+
+        if ($payload === []) {
+            throw new InvalidArgumentException('No valid changes provided.');
+        }
+
+        return $this->listChanges->create(
+            $listId,
+            $accountId,
+            ListChange::TYPE_LIST_METADATA,
+            $payload,
+        );
     }
 
     public function publishList(string $accountId, string $listId): GameList
