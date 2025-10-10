@@ -14,15 +14,18 @@
         </testsuite>
     </testsuites>
 
-    <coverage processUncoveredFiles="true" includeUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">src</directory>
-        </include>
+    <coverage>
         <report>
             <text outputFile="php://stdout" showUncoveredFiles="false" showOnlySummary="true" />
         </report>
         <limit lines="85" branches="75" />
     </coverage>
+
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </source>
 
     <logging>
         <junit outputFile="var/phpunit/junit.xml" />

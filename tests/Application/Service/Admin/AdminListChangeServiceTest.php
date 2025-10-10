@@ -10,10 +10,12 @@ use GameItemsList\Application\Service\Admin\AdminListChangeService;
 use GameItemsList\Application\Service\Lists\ListDetailCacheInterface;
 use GameItemsList\Domain\Game\Game;
 use GameItemsList\Domain\Lists\GameList;
+use GameItemsList\Domain\Lists\ItemDefinition;
 use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\ListChange;
 use GameItemsList\Domain\Lists\ListChangeRepositoryInterface;
 use GameItemsList\Domain\Lists\ListRepositoryInterface;
+use GameItemsList\Domain\Lists\Tag;
 use GameItemsList\Domain\Lists\TagRepositoryInterface;
 use InvalidArgumentException;
 use PDO;
@@ -105,7 +107,8 @@ final class AdminListChangeServiceTest extends TestCase
         $this->tags
             ->expects(self::once())
             ->method('create')
-            ->with('list-1', 'Weapons', '#FFAA00');
+            ->with('list-1', 'Weapons', '#FFAA00')
+            ->willReturn($this->createTag(color: '#FFAA00'));
 
         $this->changes
             ->expects(self::once())
@@ -197,7 +200,8 @@ final class AdminListChangeServiceTest extends TestCase
                 'name' => 'New Sword',
                 'description' => 'Updated description',
                 'tagIds' => ['tag-1'],
-            ]);
+            ])
+            ->willReturn($this->createItemDefinition());
 
         $this->changes
             ->expects(self::once())
@@ -270,6 +274,28 @@ final class AdminListChangeServiceTest extends TestCase
             null,
             false,
             new DateTimeImmutable('-1 hour'),
+        );
+    }
+
+    private function createTag(
+        string $id = 'tag-1',
+        string $listId = 'list-1',
+        string $name = 'Weapons',
+        ?string $color = null
+    ): Tag {
+        return new Tag($id, $listId, $name, $color);
+    }
+
+    private function createItemDefinition(): ItemDefinition
+    {
+        return new ItemDefinition(
+            'item-1',
+            'list-1',
+            'Sword',
+            'A sharp blade',
+            null,
+            ItemDefinition::STORAGE_TEXT,
+            [],
         );
     }
 }
