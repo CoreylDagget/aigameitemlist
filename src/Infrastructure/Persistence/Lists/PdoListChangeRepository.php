@@ -51,5 +51,114 @@ final class PdoListChangeRepository implements ListChangeRepositoryInterface
 
         return ListChange::fromDatabaseRow($row);
     }
+
+    public function findByStatus(?string $status = null): array
+    {
+        try {
+            if ($status === null) {
+                $statement = $this->pdo->query('SELECT * FROM list_changes ORDER BY created_at DESC');
+            } else {
+                $statement = $this->pdo->prepare(
+                    'SELECT * FROM list_changes WHERE status = :status ORDER BY created_at DESC'
+                );
+                $statement->execute(['status' => $status]);
+            }
+        } catch (PDOException $exception) {
+            throw new RuntimeException('Failed to fetch list changes', 0, $exception);
+        }
+
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        return array_map(static fn(array $row): ListChange => ListChange::fromDatabaseRow($row), $rows);
+    }
+
+    public function findById(string $changeId): ?ListChange
+    {
+        $statement = $this->pdo->prepare('SELECT * FROM list_changes WHERE id = :id LIMIT 1');
+        $statement->execute(['id' => $changeId]);
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if ($row === false) {
+            return null;
+        }
+
+        return ListChange::fromDatabaseRow($row);
+    }
+
+    public function findPendingByIdForUpdate(string $changeId): ?ListChange
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT * FROM list_changes WHERE id = :id AND status = :status LIMIT 1 FOR UPDATE'
+        );
+        $statement->execute([
+            'id' => $changeId,
+            'status' => ListChange::STATUS_PENDING,
+        ]);
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if ($row === false) {
+            return null;
+        }
+
+        return ListChange::fromDatabaseRow($row);
+    }
+
+    public function markApproved(string $changeId, string $reviewerAccountId): ListChange
+    {
+        try {
+            $statement = $this->pdo->prepare(
+                'UPDATE list_changes '
+                . 'SET status = :status, reviewed_by = :reviewed_by, reviewed_at = NOW() '
+                . 'WHERE id = :id AND status = :current_status '
+                . 'RETURNING *'
+            );
+            $statement->execute([
+                'status' => ListChange::STATUS_APPROVED,
+                'reviewed_by' => $reviewerAccountId,
+                'id' => $changeId,
+                'current_status' => ListChange::STATUS_PENDING,
+            ]);
+        } catch (PDOException $exception) {
+            throw new RuntimeException('Failed to approve list change', 0, $exception);
+        }
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if ($row === false) {
+            throw new RuntimeException('Failed to fetch approved list change');
+        }
+
+        return ListChange::fromDatabaseRow($row);
+    }
+
+    public function markRejected(string $changeId, string $reviewerAccountId): ListChange
+    {
+        try {
+            $statement = $this->pdo->prepare(
+                'UPDATE list_changes '
+                . 'SET status = :status, reviewed_by = :reviewed_by, reviewed_at = NOW() '
+                . 'WHERE id = :id AND status = :current_status '
+                . 'RETURNING *'
+            );
+            $statement->execute([
+                'status' => ListChange::STATUS_REJECTED,
+                'reviewed_by' => $reviewerAccountId,
+                'id' => $changeId,
+                'current_status' => ListChange::STATUS_PENDING,
+            ]);
+        } catch (PDOException $exception) {
+            throw new RuntimeException('Failed to reject list change', 0, $exception);
+        }
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if ($row === false) {
+            throw new RuntimeException('Failed to fetch rejected list change');
+        }
+
+        return ListChange::fromDatabaseRow($row);
+    }
 }
 
