@@ -45,6 +45,7 @@ criteria, owners, and reference links.
 | B8 | Admin Approval Materialization | ⏳ Offen | Build approve/reject endpoints applying pending changes transactionally. | Admin UX mockups signed off; data migration scripts ready. | Approved changes update canonical data; rejected changes audit trail intact; transactional tests pass. | Primary: Feature Team A; Escalation: Backend Lead. | AGENTS.md Admin Endpoints; Transactions. |
 | B9 | Quality Gates & CI | ⏳ Offen | Configure PHPUnit, PHPStan lvl 8, PHPCS, PHP CS Fixer, composer audit, CI workflows, and coverage thresholds. | Core features merged; tooling requirements reviewed. | CI green; coverage ≥ 85% lines / 75% branches; audit clean or waivers documented. | Primary: QA Lead; Escalation: Engineering Manager. | AGENTS.md Tests & Quality Gates; ADR-0004. |
 | B10 | Developer Experience Enhancements | ⏳ Offen | Enable Xdebug in dev, document debugging workflow, add DX scripts. | Base tooling stable; developer feedback collected. | Xdebug toggled via env; docs updated; onboarding feedback cycle complete. | Primary: DevEx Advocate; Escalation: Engineering Manager. | AGENTS.md Tech Stack; Working Agreements. |
+| B11 | Refresh Token Rotation & Hardening | ⏳ Offen | Implement refresh token issuance/storage with 14-day TTL (within 30-day sliding window), rotation on use, reuse detection, and revocation plumbing. | Policy ratified in planning docs; security review availability confirmed. | Integration tests cover rotation/revocation; hashed storage enforced; reuse triggers invalidation + audit log. | Primary: Backend Lead; Escalation: Security Champion (`@sec-lead`). | AGENTS.md Security; README Accounts & Auth. |
 
 ### Backlog Maintenance
 
@@ -60,7 +61,7 @@ criteria, owners, and reference links.
    for new work, with PostgreSQL remaining a supported/compatible option for
    teams that already provisioned it. Update iteration plans, docker compose
    defaults, and onboarding docs accordingly.
-2. Decide on JWT refresh token scope for initial release (spec allows stub).
+2. ✅ **Refresh token policy locked**: Refresh tokens live for 14 days within a 30-day sliding session window, rotate on every use, and must be stored hashed with reuse detection that revokes the token family and alerts the security channel.
 3. Determine hosting strategy for Swagger UI in production vs. dev-only.
 
 Owners should track answers in new ADRs or inline updates here.

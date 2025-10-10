@@ -13,6 +13,7 @@ This summary distills the immediate expectations from `AGENTS.md` and the planni
 ## Progress Update (Iteration 0)
 - ✅ **B1** infrastructure scaffolded: Docker Compose stack (PHP-FPM, NGINX, MySQL/MariaDB by default with Postgres-compatible overrides, Redis), Slim 4 bootstrap, health endpoint, and README onboarding instructions are now committed. Follow-up work should validate the stack via CI once additional tooling is configured.
 - 🚧 **B2** OpenAPI contract drafted: `/openapi.yaml` now captures all v1 endpoints (auth, lists, items, tags, entries, admin) plus shared schemas and RFC7807 errors. Swagger UI is exposed at `/docs` to keep the contract authoritative while implementation catches up.
+- ✅ **Refresh token lifecycle defined**: Refresh tokens have a 14-day TTL within a 30-day sliding session window, must rotate on use, and require hashed storage plus reuse detection that revokes the family and pings the security channel for investigation.
 - ℹ️ **DB preference rationale/impact**: Ops maintains MySQL-backed infrastructure, so leading with MySQL/MariaDB minimizes provisioning lead time. Maintain Postgres compatibility for teams mid-rollout, but plan migrations/tooling (seed data, migrations) against MySQL first to avoid drift.
 
 ## Execution Guardrails
@@ -20,12 +21,13 @@ This summary distills the immediate expectations from `AGENTS.md` and the planni
 - **Approval Workflow**: Any structural list change (items, tags, metadata) must create a pending `ListChange` record requiring admin approval before materializing. Stub the persistence model during B1/B2 to keep later work unblocked.
 - **Architecture & Style**: Controllers should delegate to services and repositories, enforce strict types, and follow PSR-12 conventions. Prefer DTOs for request/response payloads.
 - **Caching Plan**: Redis caches read-heavy list detail responses per account for ~60 seconds. Remember to invalidate caches on approvals and personal `ItemEntry` updates.
+- **Auth Session Policy**: Enforce the 14-day refresh token TTL (max 30-day sliding window), rotate tokens on every refresh, persist only hashed values, and treat reuse as a security event that invalidates the token family.
 - **Quality Gates**: Budget time for PHPUnit (≥85% lines / 75% branches), PHPStan level 8, PHPCS, PHP CS Fixer, and `composer audit`. Document which checks run for each milestone as tooling comes online.
 
 ## Open Questions to Resolve Early
 
 1. ✅ **Database baseline decided**: MySQL/MariaDB is the default datastore for new work; Postgres remains a compatible fallback for teams already running it. Adjust iteration plans, Docker defaults, and onboarding docs to match.
-2. Decide the scope of JWT refresh tokens for the first release (stub vs. full refresh flow) so auth contracts remain stable.
+2. ✅ **Refresh token policy locked**: 14-day TTL, rotation on use, hashed persistence, and reuse detection with automatic family revocation + alerting.
 3. Determine whether Swagger UI will be exposed in production or limited to development environments to set deployment expectations.
 
 Record decisions as ADRs and update both this summary and the planning backlog once resolved.

@@ -4,7 +4,7 @@
 Accounts können Listen (pro Spiel) anlegen, Items und Kategorien verwalten (mit Admin-Approval), Besitz/Anzahl pro Account tracken und Listen filtern / veröffentlichen.
 
 ## Features (Stand: v0.2)
-- **Accounts & Auth** – Registrierung & Login mit Argon2id gehashten Passwörtern und kurzlebigen JWTs. Tokens enthalten Account-ID & E-Mail als Claims für Downstream-Services.
+- **Accounts & Auth** – Registrierung & Login mit Argon2id gehashten Passwörtern, kurzlebigen Access Tokens und Refresh Tokens (14 Tage TTL, maximal 30 Tage Sliding Window) die bei jeder Verwendung rotiert werden. Tokens enthalten Account-ID & E-Mail als Claims für Downstream-Services; Refresh Tokens werden nur gehasht gespeichert und Reuse führt zur Session-Invalidierung inkl. Security-Alert.
 - **Listen-Verwaltung** – Accounts können pro Spiel beliebig viele Listen anlegen, Details abrufen, Metadaten-Änderungen als Pending Change einreichen und Listen veröffentlichen.
 - **Item-Definitionen** – Items unterstützen Namen, Beschreibung, Bild-URL sowie die Speichertypen **boolean**, **count** und **text**. Strukturänderungen erzeugen `ListChange`-Einträge.
 - **Tags/Kategorien** – Tags je Liste inkl. optionaler HEX-Farbe. Neue Tags werden ebenfalls als Pending Change modelliert.
