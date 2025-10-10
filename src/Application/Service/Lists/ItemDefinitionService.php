@@ -21,7 +21,7 @@ final class ItemDefinitionService
     ];
 
     public function __construct(
-        private readonly ListService $listService,
+        private readonly ListServiceInterface $listService,
         private readonly ItemDefinitionRepositoryInterface $items,
         private readonly TagRepositoryInterface $tags,
         private readonly ListChangeRepositoryInterface $listChanges,

@@ -6,7 +6,7 @@ namespace GameItemsList\Tests\Application\Service\Lists;
 
 use GameItemsList\Application\Service\Lists\ItemEntryService;
 use GameItemsList\Application\Service\Lists\ListDetailCacheInterface;
-use GameItemsList\Application\Service\Lists\ListService;
+use GameItemsList\Application\Service\Lists\ListServiceInterface;
 use GameItemsList\Domain\Game\Game;
 use GameItemsList\Domain\Lists\GameList;
 use GameItemsList\Domain\Lists\ItemDefinition;
@@ -21,8 +21,8 @@ final class ItemEntryServiceTest extends TestCase
 {
     public function testSetEntryPersistsBooleanValue(): void
     {
-        /** @var MockObject&ListService $listService */
-        $listService = $this->createMock(ListService::class);
+        /** @var MockObject&ListServiceInterface $listService */
+        $listService = $this->createMock(ListServiceInterface::class);
         $listService->expects(self::once())
             ->method('requireListOwnedByAccount')
             ->with('account-1', 'list-1', self::isType('string'))
@@ -76,8 +76,8 @@ final class ItemEntryServiceTest extends TestCase
 
     public function testSetEntryThrowsForInvalidCountValue(): void
     {
-        /** @var MockObject&ListService $listService */
-        $listService = $this->createMock(ListService::class);
+        /** @var MockObject&ListServiceInterface $listService */
+        $listService = $this->createMock(ListServiceInterface::class);
         $listService->method('requireListOwnedByAccount')->willReturn($this->createList());
 
         $itemDefinition = new ItemDefinition(

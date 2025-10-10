@@ -13,7 +13,7 @@ use InvalidArgumentException;
 final class ItemEntryService
 {
     public function __construct(
-        private readonly ListService $listService,
+        private readonly ListServiceInterface $listService,
         private readonly ItemEntryRepositoryInterface $entries,
         private readonly ItemDefinitionRepositoryInterface $itemDefinitions,
         private readonly ListDetailCacheInterface $listDetailCache,

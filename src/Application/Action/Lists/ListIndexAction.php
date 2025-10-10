@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GameItemsList\Application\Action\Lists;
 
 use GameItemsList\Application\Http\JsonResponder;
-use GameItemsList\Application\Service\Lists\ListService;
+use GameItemsList\Application\Service\Lists\ListServiceInterface;
 use GameItemsList\Domain\Lists\GameList;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -13,7 +13,7 @@ use Psr\Http\Message\ServerRequestInterface;
 final class ListIndexAction
 {
     public function __construct(
-        private readonly ListService $listService,
+        private readonly ListServiceInterface $listService,
         private readonly JsonResponder $responder
     ) {
     }
