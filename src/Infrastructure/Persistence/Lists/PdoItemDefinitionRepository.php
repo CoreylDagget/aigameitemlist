@@ -7,7 +7,6 @@ namespace GameItemsList\Infrastructure\Persistence\Lists;
 use GameItemsList\Domain\Lists\ItemDefinition;
 use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\Tag;
-
 use InvalidArgumentException;
 use PDO;
 use PDOException;
