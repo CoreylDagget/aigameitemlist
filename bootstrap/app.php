@@ -18,6 +18,7 @@ $appFactory = require __DIR__ . '/../config/container.php';
 $app = $appFactory();
 
 $settings = require __DIR__ . '/../config/settings.php';
+$app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
 
 $app->addErrorMiddleware(
