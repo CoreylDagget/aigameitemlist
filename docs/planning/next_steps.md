@@ -2,25 +2,23 @@
 
 This summary distills the immediate expectations from `AGENTS.md` and the planning backlog and turns them into an actionable starter plan for the next engineering iteration.
 
-## Immediate Focus (Iteration 0)
+## Immediate Focus (Iteration 1)
 
 | Priority | Backlog Ref | Outcome | Entry Criteria | Exit Validation | Notes |
 |----------|-------------|---------|----------------|-----------------|-------|
-| 🚀 | B1 – Development Environment Baseline | Slim 4 skeleton, Docker compose stack (PHP-FPM, NGINX, MySQL/MariaDB as primary DB, Redis) with `/health` endpoint. | AGENTS.md deliverables reviewed; environment prerequisites confirmed with DevOps. | `docker compose up` boots all services; `/health` returns 200; README documents run steps. | Capture follow-up bugs or infra gaps in backlog as soon as discovered; ensure MySQL images/configs are the default while keeping Postgres compose overrides available. |
-| 🚀 | B2 – Authoritative OpenAPI Contract | `openapi.yaml` that enumerates all v1 endpoints (auth, lists, tags, items, entries, admin) and error models. | B1 merged; endpoint scope validated with product + backend leads. | Spec lint passes; Swagger UI available at `/docs`; version tagged in repo. | Use the contract to drive early stub controllers once approved. |
-| 🚀 | B3/B4 Foundations – Auth & Lists | JWT-backed register/login plus `/v1/lists` CRUD and publish workflow aligned to the contract. | B2 approved; database schema for accounts/lists finalized. | PHPUnit integration tests pass; PHPStan level 8 clean; publish toggles `is_published` with cache invalidation hooks stubbed. | Begin with service/repository scaffolding to keep controllers thin. |
+| 🚀 | B7 – Filters & Caching Strategy | Deliver tag/owned/search filters with Redis-backed caching and observable busting rules. | B1–B6 deployed; Redis infrastructure smoke-tested; filter requirements validated with product. | Integration tests cover tag + ownership filters; cache TTL fixed at 60s with instrumentation; invalidation triggered on approvals and `ItemEntry` mutations. | Pair with QA to expand cache-invalidation regression suite; document metrics/alerts alongside [Backlog B7](README.md#backlog-b7). |
+| 🚀 | B8 – Admin Approval Materialization | Ship approve/reject endpoints that materialize pending `ListChange` records transactionally and keep caches coherent. | B7 cache hooks available; admin UX copy/mocks finalized; data migrations rehearsed. | Approvals apply changes atomically; rejections persist audit trail; caches bust on approval; end-to-end tests cover happy/sad paths. | Coordinate with security on reviewer permissions; capture rollback steps in runbook referencing [Backlog B8](README.md#backlog-b8). |
 
-## Progress Update (Iteration 0)
-- ✅ **B1** infrastructure scaffolded: Docker Compose stack (PHP-FPM, NGINX, MySQL/MariaDB by default with Postgres-compatible overrides, Redis), Slim 4 bootstrap, health endpoint, and README onboarding instructions are now committed. Follow-up work should validate the stack via CI once additional tooling is configured.
-- 🚧 **B2** OpenAPI contract drafted: `/openapi.yaml` now captures all v1 endpoints (auth, lists, items, tags, entries, admin) plus shared schemas and RFC7807 errors. Swagger UI is exposed at `/docs` to keep the contract authoritative while implementation catches up.
-- ✅ **Refresh token lifecycle defined**: Refresh tokens have a 14-day TTL within a 30-day sliding session window, must rotate on use, and require hashed storage plus reuse detection that revokes the family and pings the security channel for investigation.
-- ℹ️ **DB preference rationale/impact**: Ops maintains MySQL-backed infrastructure, so leading with MySQL/MariaDB minimizes provisioning lead time. Maintain Postgres compatibility for teams mid-rollout, but plan migrations/tooling (seed data, migrations) against MySQL first to avoid drift.
+## Progress Update (Iteration 1)
+- ✅ **Platform foundations (B1–B6) complete**: Environment bootstrap, OpenAPI contract, auth flows, list CRUD/publishing, tag + item definition workflows, and personal entry tracking are merged and validated. These building blocks unlocked cached list reads and the approval ledger required for downstream work.
+- 🚧 **Filters & caching (B7) active**: Engineering is implementing combined tag/owned/search filters while wiring Redis TTLs, cache busting hooks, and observability needed for fast diagnosis. Integration scenarios for invalidation are being authored alongside QA.
+- ⏳ **Admin approval materialization (B8) queued**: Pending change application flows are prepped, with UX and migration assets ready to go once B7 validates the cache hooks that approvals must call into.
 
 ## Execution Guardrails
 
-- **Approval Workflow**: Any structural list change (items, tags, metadata) must create a pending `ListChange` record requiring admin approval before materializing. Stub the persistence model during B1/B2 to keep later work unblocked.
+- **Approval Workflow (B8 dependency)**: All structural list edits must continue to land as pending `ListChange` records that only materialize after approval. As we wire the approval endpoints, require transactional tests that confirm audit logging, reviewer permissions, and cache busting occur together.
 - **Architecture & Style**: Controllers should delegate to services and repositories, enforce strict types, and follow PSR-12 conventions. Prefer DTOs for request/response payloads.
-- **Caching Plan**: Redis caches read-heavy list detail responses per account for ~60 seconds. Remember to invalidate caches on approvals and personal `ItemEntry` updates.
+- **Caching Plan (B7 scope)**: Redis caches read-heavy list detail responses per account for ~60 seconds. Build automated tests that invalidate caches on approvals and personal `ItemEntry` updates, and record metrics/alerts before cutting release candidates.
 - **Auth Session Policy**: Enforce the 14-day refresh token TTL (max 30-day sliding window), rotate tokens on every refresh, persist only hashed values, and treat reuse as a security event that invalidates the token family.
 - **Quality Gates**: Budget time for PHPUnit (≥85% lines / 75% branches), PHPStan level 8, PHPCS, PHP CS Fixer, and `composer audit`. Document which checks run for each milestone as tooling comes online.
 
