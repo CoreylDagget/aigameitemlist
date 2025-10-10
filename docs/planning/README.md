@@ -12,7 +12,7 @@ on the mission and standards captured in `AGENTS.md` and the public README.
 - **Success definition**: All endpoints described in the spec exist, enforce
   approval workflows, are documented in OpenAPI, and run inside the prescribed
   Docker stack with quality gates (tests, static analysis, linting) at green.
-- **Key architectural drivers**: Slim 4 + PHP 8.3, Postgres/Redis, clear
+- **Key architectural drivers**: Slim 4 + PHP 8.3, MySQL/MariaDB (primary) with Postgres compatibility, Redis, clear
   separation of controllers/services/repositories, PSR-12 style compliance,
   caching for read-heavy list views, JWT-secured access, and admin review of
   structural changes.
@@ -35,9 +35,9 @@ criteria, owners, and reference links.
 
 | ID | Item | Status | Description | Entry Criteria | Exit Validation | Owner / Escalation | References |
 |----|------|--------|-------------|----------------|-----------------|--------------------|------------|
-| B1 | Development Environment Baseline | ✅ Done | Stand up Slim 4 skeleton with Docker (PHP-FPM, NGINX, Postgres, Redis) and health endpoint. | Specs in `AGENTS.md` reviewed; Docker + PHP versions confirmed with DevOps. | `docker compose up` succeeds; `/health` returns 200; README updated with run instructions. | Primary: Backend Lead; Escalation: DevOps Lead via `#dev-env`. | AGENTS.md Deliverables §1. |
+| B1 | Development Environment Baseline | ✅ Done | Stand up Slim 4 skeleton with Docker (PHP-FPM, NGINX, MySQL/MariaDB default with Postgres-compatible option, Redis) and health endpoint. | Specs in `AGENTS.md` reviewed; Docker + PHP versions confirmed with DevOps. | `docker compose up` succeeds; `/health` returns 200; README updated with run instructions. | Primary: Backend Lead; Escalation: DevOps Lead via `#dev-env`. | AGENTS.md Deliverables §1. |
 | B2 | Authoritative OpenAPI Contract | ✅ Done | Draft `openapi.yaml` covering all v1 endpoints including admin actions and error models. | Milestone B1 available; product + backend sign off on endpoint list. | Spec lint passes; hosted at `/docs` via Swagger UI; version tagged in repo. | Primary: API Architect; Escalation: Product Manager via weekly sync. | AGENTS.md API Requirements; README features. |
-| B3 | Auth & Account Lifecycle | ✅ Done | Implement register/login endpoints issuing JWT, persistence in Postgres. | B1 complete; OpenAPI endpoints for auth finalized. | PHPUnit integration tests for auth pass; JWT secrets configurable; PHPStan level 8 clean. | Primary: Backend Lead; Escalation: Security Champion (`@sec-lead`). | AGENTS.md Mission; Security; ADR-0003. |
+| B3 | Auth & Account Lifecycle | ✅ Done | Implement register/login endpoints issuing JWT, persistence in MySQL/MariaDB (with Postgres compatibility). | B1 complete; OpenAPI endpoints for auth finalized. | PHPUnit integration tests for auth pass; JWT secrets configurable; PHPStan level 8 clean. | Primary: Backend Lead; Escalation: Security Champion (`@sec-lead`). | AGENTS.md Mission; Security; ADR-0003. |
 | B4 | List CRUD & Publishing | ✅ Done | Implement `/v1/lists` CRUD and publish flow aligned with spec. | B2 approved; auth flow available. | GET/POST/PATCH endpoints match OpenAPI; publishing toggles `is_published`; cache invalidation hooks stubbed. | Primary: Backend Lead; Escalation: Product Manager. | AGENTS.md Endpoints; Deliverables 3. |
 | B5 | Tags & Item Definition Changes | ✅ Done | Enable creating/editing tags and item definitions with pending `ListChange` records. | B4 deployed to dev; change review UX defined. | Pending changes recorded; admin queues reflect new entries; unit tests cover service layer. | Primary: Feature Team A; Escalation: Admin SME. | AGENTS.md Items & Tags; Approval log; ADR-0003. |
 | B6 | Item Entries & Ownership | ✅ Done | Provide `/entries` endpoints storing per-account ownership/quantity/text. | Data model for lists/items stable; caching strategy drafted. | Personal entries mutate immediately; responses cached per account; PHPUnit coverage ≥ 85% for module. | Primary: Feature Team B; Escalation: Data Steward. | AGENTS.md ItemEntry; Performance notes. |
@@ -56,8 +56,10 @@ criteria, owners, and reference links.
 
 ## Known Open Questions
 
-1. Confirm whether MySQL support is required alongside Postgres or if Postgres
-   is the exclusive target for the first iteration.
+1. ✅ **Database baseline decided**: MySQL/MariaDB is now the primary datastore
+   for new work, with PostgreSQL remaining a supported/compatible option for
+   teams that already provisioned it. Update iteration plans, docker compose
+   defaults, and onboarding docs accordingly.
 2. Decide on JWT refresh token scope for initial release (spec allows stub).
 3. Determine hosting strategy for Swagger UI in production vs. dev-only.
 
