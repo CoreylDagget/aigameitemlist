@@ -1,6 +1,6 @@
 # gameitemslist — Item Tracker für Spiele
 
-**Create your list of items for a game.**  
+**Create your list of items for a game.**
 Accounts können Listen (pro Spiel) anlegen, Items und Kategorien verwalten (mit Admin-Approval), Besitz/Anzahl pro Account tracken und Listen filtern / veröffentlichen.
 
 ## Features
@@ -20,6 +20,42 @@ Accounts können Listen (pro Spiel) anlegen, Items und Kategorien verwalten (mit
 - PHPUnit, PHPStan, PHPCS/PHP CS Fixer
 - Xdebug (dev)
 
+## Getting Started
+
+### Prerequisites
+- Docker (Desktop oder Engine) + Docker Compose v2
+- Make (optional, vereinfacht Befehle)
+
+### Initial Setup
+1. Kopiere die Beispiel-Umgebungsvariablen:
+   ```bash
+   cp .env.example .env
+   ```
+2. Installiere PHP-Abhängigkeiten (lokal oder im Container):
+   ```bash
+   make install
+   ```
+3. Starte die Docker-Entwicklungsumgebung:
+   ```bash
+   make up
+   ```
+
+Der API-Einstiegspunkt wird anschließend unter [http://localhost:8080](http://localhost:8080) bereitgestellt. Das Health-Endpoint erreicht man via:
+```bash
+make health
+```
+
+### Dienste im Stack
+- **gil-php**: PHP-FPM Container (Slim App + Composer)
+- **gil-nginx**: NGINX Reverse Proxy vor PHP-FPM
+- **gil-postgres**: PostgreSQL 16 mit persistentem Volume `db_data`
+- **gil-redis**: Redis 7 mit persistentem Volume `redis_data`
+
+Zum Herunterfahren aller Dienste:
+```bash
+make down
+```
+
 ## Projekt-Dokumentation
 - **Planung & Backlog**: siehe [`docs/planning/README.md`](docs/planning/README.md)
   für Vision, Meilensteine und priorisierte Aufgaben inklusive Entry-/Exit-
@@ -28,3 +64,5 @@ Accounts können Listen (pro Spiel) anlegen, Items und Kategorien verwalten (mit
   (z. B. [`0001-documentation-structure.md`](docs/adr/0001-documentation-structure.md),
   [`0002-planning-cadence.md`](docs/adr/0002-planning-cadence.md)).
 
+## Health Endpoint
+`GET /health` liefert eine JSON-Antwort mit Service-Status, um Deployments und lokale Setups schnell prüfen zu können. Dieser Endpoint wird von Docker Compose beim lokalen Smoke-Test genutzt und dient später als Basis für Monitoring Checks.

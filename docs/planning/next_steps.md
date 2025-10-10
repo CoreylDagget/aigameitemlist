@@ -10,6 +10,9 @@ This summary distills the immediate expectations from `AGENTS.md` and the planni
 | 🚀 | B2 – Authoritative OpenAPI Contract | `openapi.yaml` that enumerates all v1 endpoints (auth, lists, tags, items, entries, admin) and error models. | B1 merged; endpoint scope validated with product + backend leads. | Spec lint passes; Swagger UI available at `/docs`; version tagged in repo. | Use the contract to drive early stub controllers once approved. |
 | 🚀 | B3/B4 Foundations – Auth & Lists | JWT-backed register/login plus `/v1/lists` CRUD and publish workflow aligned to the contract. | B2 approved; database schema for accounts/lists finalized. | PHPUnit integration tests pass; PHPStan level 8 clean; publish toggles `is_published` with cache invalidation hooks stubbed. | Begin with service/repository scaffolding to keep controllers thin. |
 
+## Progress Update (Iteration 0)
+- ✅ **B1** infrastructure scaffolded: Docker Compose stack (PHP-FPM, NGINX, Postgres, Redis), Slim 4 bootstrap, health endpoint, and README onboarding instructions are now committed. Follow-up work should validate the stack via CI once additional tooling is configured.
+
 ## Execution Guardrails
 
 - **Approval Workflow**: Any structural list change (items, tags, metadata) must create a pending `ListChange` record requiring admin approval before materializing. Stub the persistence model during B1/B2 to keep later work unblocked.
