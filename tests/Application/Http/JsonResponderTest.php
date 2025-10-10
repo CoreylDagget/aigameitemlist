@@ -26,7 +26,13 @@ final class JsonResponderTest extends TestCase
     public function testProblemResponseUsesProblemJsonMediaType(): void
     {
         $responder = new JsonResponder();
-        $response = $responder->problem(400, 'Invalid', 'Missing field', 'https://example.com/problem', ['detail_code' => 'missing']);
+        $response = $responder->problem(
+            400,
+            'Invalid',
+            'Missing field',
+            'https://example.com/problem',
+            ['detail_code' => 'missing']
+        );
 
         self::assertSame(400, $response->getStatusCode());
         self::assertSame(['Content-Type' => ['application/problem+json']], $response->getHeaders());
