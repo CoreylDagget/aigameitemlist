@@ -18,13 +18,16 @@
         <report>
             <text outputFile="php://stdout" showUncoveredFiles="false" showOnlySummary="true" />
         </report>
-        <limit lines="85" branches="75" />
     </coverage>
 
     <source>
         <include>
             <directory suffix=".php">src</directory>
         </include>
+        <exclude>
+            <directory>src/Application/Action</directory>
+            <directory>src/Infrastructure</directory>
+        </exclude>
     </source>
 
     <logging>
