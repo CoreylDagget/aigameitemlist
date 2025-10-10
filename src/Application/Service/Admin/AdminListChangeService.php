@@ -16,7 +16,7 @@ use InvalidArgumentException;
 use PDO;
 use Throwable;
 
-final class AdminListChangeService
+final class AdminListChangeService implements AdminListChangeServiceInterface
 {
     private const ALLOWED_STATUSES = [
         ListChange::STATUS_PENDING,

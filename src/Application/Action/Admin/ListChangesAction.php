@@ -6,7 +6,7 @@ namespace GameItemsList\Application\Action\Admin;
 
 use DomainException;
 use GameItemsList\Application\Http\JsonResponder;
-use GameItemsList\Application\Service\Admin\AdminListChangeService;
+use GameItemsList\Application\Service\Admin\AdminListChangeServiceInterface;
 use GameItemsList\Domain\Lists\ListChange;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
@@ -17,7 +17,7 @@ final class ListChangesAction
     use ListChangeResponseFormatter;
 
     public function __construct(
-        private readonly AdminListChangeService $service,
+        private readonly AdminListChangeServiceInterface $service,
         private readonly JsonResponder $responder,
     ) {
     }

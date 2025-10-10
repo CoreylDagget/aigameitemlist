@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use DomainException;
 use GameItemsList\Application\Action\Admin\RejectChangeAction;
 use GameItemsList\Application\Http\JsonResponder;
-use GameItemsList\Application\Service\Admin\AdminListChangeService;
+use GameItemsList\Application\Service\Admin\AdminListChangeServiceInterface;
 use GameItemsList\Domain\Lists\ListChange;
 use InvalidArgumentException;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -25,8 +25,8 @@ final class RejectChangeActionTest extends TestCase
             reviewedBy: 'reviewer-9',
         );
 
-        /** @var MockObject&AdminListChangeService $service */
-        $service = $this->createMock(AdminListChangeService::class);
+        /** @var MockObject&AdminListChangeServiceInterface $service */
+        $service = $this->createMock(AdminListChangeServiceInterface::class);
         $service->expects(self::once())
             ->method('rejectChange')
             ->with('change-9', 'reviewer-9')
@@ -61,8 +61,8 @@ final class RejectChangeActionTest extends TestCase
 
     public function testRejectChangeRequiresChangeId(): void
     {
-        /** @var MockObject&AdminListChangeService $service */
-        $service = $this->createMock(AdminListChangeService::class);
+        /** @var MockObject&AdminListChangeServiceInterface $service */
+        $service = $this->createMock(AdminListChangeServiceInterface::class);
         $service->expects(self::never())->method('rejectChange');
 
         $action = new RejectChangeAction($service, new JsonResponder());
@@ -84,8 +84,8 @@ final class RejectChangeActionTest extends TestCase
 
     public function testRejectChangeMapsDomainExceptionToForbidden(): void
     {
-        /** @var MockObject&AdminListChangeService $service */
-        $service = $this->createMock(AdminListChangeService::class);
+        /** @var MockObject&AdminListChangeServiceInterface $service */
+        $service = $this->createMock(AdminListChangeServiceInterface::class);
         $service->expects(self::once())
             ->method('rejectChange')
             ->willThrowException(new DomainException('Reviewers may not reject their own changes.'));
@@ -109,8 +109,8 @@ final class RejectChangeActionTest extends TestCase
 
     public function testRejectChangeMapsInvalidArgumentToNotFound(): void
     {
-        /** @var MockObject&AdminListChangeService $service */
-        $service = $this->createMock(AdminListChangeService::class);
+        /** @var MockObject&AdminListChangeServiceInterface $service */
+        $service = $this->createMock(AdminListChangeServiceInterface::class);
         $service->expects(self::once())
             ->method('rejectChange')
             ->willThrowException(new InvalidArgumentException('List not found for change.'));

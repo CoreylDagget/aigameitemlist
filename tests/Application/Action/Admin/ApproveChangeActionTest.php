@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use DomainException;
 use GameItemsList\Application\Action\Admin\ApproveChangeAction;
 use GameItemsList\Application\Http\JsonResponder;
-use GameItemsList\Application\Service\Admin\AdminListChangeService;
+use GameItemsList\Application\Service\Admin\AdminListChangeServiceInterface;
 use GameItemsList\Domain\Lists\ListChange;
 use InvalidArgumentException;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -25,8 +25,8 @@ final class ApproveChangeActionTest extends TestCase
             reviewedBy: 'reviewer-1',
         );
 
-        /** @var MockObject&AdminListChangeService $service */
-        $service = $this->createMock(AdminListChangeService::class);
+        /** @var MockObject&AdminListChangeServiceInterface $service */
+        $service = $this->createMock(AdminListChangeServiceInterface::class);
         $service->expects(self::once())
             ->method('approveChange')
             ->with('change-1', 'reviewer-1')
@@ -58,8 +58,8 @@ final class ApproveChangeActionTest extends TestCase
 
     public function testApproveChangeRequiresChangeId(): void
     {
-        /** @var MockObject&AdminListChangeService $service */
-        $service = $this->createMock(AdminListChangeService::class);
+        /** @var MockObject&AdminListChangeServiceInterface $service */
+        $service = $this->createMock(AdminListChangeServiceInterface::class);
         $service->expects(self::never())->method('approveChange');
 
         $action = new ApproveChangeAction($service, new JsonResponder());
@@ -81,8 +81,8 @@ final class ApproveChangeActionTest extends TestCase
 
     public function testApproveChangeMapsDomainExceptionToForbidden(): void
     {
-        /** @var MockObject&AdminListChangeService $service */
-        $service = $this->createMock(AdminListChangeService::class);
+        /** @var MockObject&AdminListChangeServiceInterface $service */
+        $service = $this->createMock(AdminListChangeServiceInterface::class);
         $service->expects(self::once())
             ->method('approveChange')
             ->willThrowException(new DomainException('Reviewers may not approve their own changes.'));
@@ -106,8 +106,8 @@ final class ApproveChangeActionTest extends TestCase
 
     public function testApproveChangeMapsInvalidArgumentToNotFound(): void
     {
-        /** @var MockObject&AdminListChangeService $service */
-        $service = $this->createMock(AdminListChangeService::class);
+        /** @var MockObject&AdminListChangeServiceInterface $service */
+        $service = $this->createMock(AdminListChangeServiceInterface::class);
         $service->expects(self::once())
             ->method('approveChange')
             ->willThrowException(new InvalidArgumentException('Change not found.'));
