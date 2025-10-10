@@ -83,7 +83,7 @@ Build **gameitemslist**: a web app and API to create and manage per-game item li
 
 ## Security
 - Hash passwords with password_hash (argon2id preferred).
-- JWT: short-lived access + optional refresh (later).
+- JWT: short-lived access tokens plus refresh tokens with a 14-day TTL inside a 30-day sliding window; rotate refresh tokens on every use, persist only hashed values, and treat reuse as a revocation + security alert.
 - Enforce owner-only modifications except admin endpoints.
 
 ## Deliverables Order
