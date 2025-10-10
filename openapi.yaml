@@ -137,6 +137,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /v1/lists/{listId}:
     parameters:
       - $ref: '#/components/parameters/ListId'

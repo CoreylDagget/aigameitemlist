@@ -7,6 +7,7 @@ use GameItemsList\Application\Action\Auth\RegisterAction;
 use GameItemsList\Application\Action\HealthCheckAction;
 use GameItemsList\Application\Action\Lists\CreateListAction;
 use GameItemsList\Application\Action\Lists\ListIndexAction;
+use GameItemsList\Application\Action\Lists\GetListAction;
 use GameItemsList\Application\Action\OpenApiAction;
 use GameItemsList\Application\Action\SwaggerUiAction;
 use GameItemsList\Application\Http\JsonResponder;
@@ -82,4 +83,5 @@ return [
     LoginAction::class => autowire(),
     ListIndexAction::class => autowire(),
     CreateListAction::class => autowire(),
+    GetListAction::class => autowire(),
 ];
