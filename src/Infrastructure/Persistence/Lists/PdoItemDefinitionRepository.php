@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace GameItemsList\Infrastructure\Persistence\Lists;
@@ -6,10 +7,12 @@ namespace GameItemsList\Infrastructure\Persistence\Lists;
 use GameItemsList\Domain\Lists\ItemDefinition;
 use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\Tag;
+
 use InvalidArgumentException;
 use PDO;
 use PDOException;
 use RuntimeException;
+
 use function mb_strtolower;
 
 final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInterface
