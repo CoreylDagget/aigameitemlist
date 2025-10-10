@@ -73,7 +73,7 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
         $statement = $this->pdo->prepare($sql);
         $statement->execute($parameters);
 
-        $rows = $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         if ($rows === []) {
             return [];

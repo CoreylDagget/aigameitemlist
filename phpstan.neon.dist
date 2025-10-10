@@ -10,3 +10,5 @@ parameters:
     reportUnmatchedIgnoredErrors: true
     scanFiles:
         - vendor/autoload.php
+    stubFiles:
+        - stubs/phpunit-mock-object.stub.php
