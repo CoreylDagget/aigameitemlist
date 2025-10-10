@@ -2,20 +2,21 @@
 
 declare(strict_types=1);
 
-namespace GameItemsList\Application\Action\Lists;
+namespace GameItemsList\Application\Action\Tags;
 
 use DomainException;
 use GameItemsList\Application\Http\JsonResponder;
-use GameItemsList\Application\Service\Lists\ListService;
+use GameItemsList\Application\Service\Lists\TagService;
+use GameItemsList\Domain\Lists\Tag;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class GetListAction
+final class ListTagsAction
 {
     public function __construct(
-        private readonly ListService $listService,
-        private readonly JsonResponder $responder
+        private readonly TagService $tagService,
+        private readonly JsonResponder $responder,
     ) {
     }
 
@@ -30,26 +31,23 @@ final class GetListAction
         $accountId = (string) $request->getAttribute('account_id');
 
         try {
-            $list = $this->listService->getListForOwner($accountId, $listId);
+            $tags = $this->tagService->listTags($accountId, $listId);
         } catch (DomainException $exception) {
             return $this->responder->problem(403, 'Forbidden', $exception->getMessage());
         } catch (InvalidArgumentException $exception) {
             return $this->responder->problem(404, 'Not Found', $exception->getMessage());
         }
 
-        return $this->responder->respond([
-            'id' => $list->id(),
-            'ownerAccountId' => $list->ownerAccountId(),
-            'game' => [
-                'id' => $list->game()->id(),
-                'name' => $list->game()->name(),
-            ],
-            'name' => $list->name(),
-            'description' => $list->description(),
-            'isPublished' => $list->isPublished(),
-            'createdAt' => $list->createdAt()->format(DATE_ATOM),
-            'tags' => [],
-            'items' => [],
-        ]);
+        $data = array_map(static function (Tag $tag): array {
+            return [
+                'id' => $tag->id(),
+                'listId' => $tag->listId(),
+                'name' => $tag->name(),
+                'color' => $tag->color(),
+            ];
+        }, $tags);
+
+        return $this->responder->respond(['data' => $data]);
     }
 }
+

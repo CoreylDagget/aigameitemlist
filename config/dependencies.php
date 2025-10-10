@@ -5,6 +5,11 @@ declare(strict_types=1);
 use GameItemsList\Application\Action\Auth\LoginAction;
 use GameItemsList\Application\Action\Auth\RegisterAction;
 use GameItemsList\Application\Action\HealthCheckAction;
+use GameItemsList\Application\Action\Entries\ListEntriesAction;
+use GameItemsList\Application\Action\Entries\SetEntryAction;
+use GameItemsList\Application\Action\Items\CreateItemAction;
+use GameItemsList\Application\Action\Items\ListItemsAction;
+use GameItemsList\Application\Action\Items\UpdateItemAction;
 use GameItemsList\Application\Action\Lists\CreateListAction;
 use GameItemsList\Application\Action\Lists\ListIndexAction;
 use GameItemsList\Application\Action\Lists\GetListAction;
@@ -12,20 +17,31 @@ use GameItemsList\Application\Action\Lists\PublishListAction;
 use GameItemsList\Application\Action\Lists\UpdateListAction;
 use GameItemsList\Application\Action\OpenApiAction;
 use GameItemsList\Application\Action\SwaggerUiAction;
+use GameItemsList\Application\Action\Tags\CreateTagAction;
+use GameItemsList\Application\Action\Tags\ListTagsAction;
 use GameItemsList\Application\Http\JsonResponder;
 use GameItemsList\Application\Middleware\AuthenticationMiddleware;
 use GameItemsList\Application\Security\JwtTokenService;
 use GameItemsList\Application\Service\Auth\AuthenticateAccountService;
 use GameItemsList\Application\Service\Auth\RegisterAccountService;
+use GameItemsList\Application\Service\Lists\ItemDefinitionService;
+use GameItemsList\Application\Service\Lists\ItemEntryService;
 use GameItemsList\Application\Service\Lists\ListService;
+use GameItemsList\Application\Service\Lists\TagService;
 use GameItemsList\Domain\Account\AccountRepositoryInterface;
 use GameItemsList\Domain\Game\GameRepositoryInterface;
 use GameItemsList\Domain\Lists\ListChangeRepositoryInterface;
+use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
+use GameItemsList\Domain\Lists\ItemEntryRepositoryInterface;
 use GameItemsList\Domain\Lists\ListRepositoryInterface;
+use GameItemsList\Domain\Lists\TagRepositoryInterface;
 use GameItemsList\Infrastructure\Persistence\Account\PdoAccountRepository;
 use GameItemsList\Infrastructure\Persistence\Game\PdoGameRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoListChangeRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoListRepository;
+use GameItemsList\Infrastructure\Persistence\Lists\PdoItemDefinitionRepository;
+use GameItemsList\Infrastructure\Persistence\Lists\PdoItemEntryRepository;
+use GameItemsList\Infrastructure\Persistence\Lists\PdoTagRepository;
 use PDO;
 use Psr\Container\ContainerInterface;
 use function DI\autowire;
@@ -77,9 +93,21 @@ return [
     ListChangeRepositoryInterface::class => static fn(ContainerInterface $container): ListChangeRepositoryInterface
         => new PdoListChangeRepository($container->get(PDO::class)),
 
+    TagRepositoryInterface::class => static fn(ContainerInterface $container): TagRepositoryInterface
+        => new PdoTagRepository($container->get(PDO::class)),
+
+    ItemDefinitionRepositoryInterface::class => static fn(ContainerInterface $container): ItemDefinitionRepositoryInterface
+        => new PdoItemDefinitionRepository($container->get(PDO::class)),
+
+    ItemEntryRepositoryInterface::class => static fn(ContainerInterface $container): ItemEntryRepositoryInterface
+        => new PdoItemEntryRepository($container->get(PDO::class)),
+
     RegisterAccountService::class => autowire(),
     AuthenticateAccountService::class => autowire(),
     ListService::class => autowire(),
+    TagService::class => autowire(),
+    ItemDefinitionService::class => autowire(),
+    ItemEntryService::class => autowire(),
 
     AuthenticationMiddleware::class => autowire(),
 
@@ -93,4 +121,11 @@ return [
     GetListAction::class => autowire(),
     PublishListAction::class => autowire(),
     UpdateListAction::class => autowire(),
+    ListTagsAction::class => autowire(),
+    CreateTagAction::class => autowire(),
+    ListItemsAction::class => autowire(),
+    CreateItemAction::class => autowire(),
+    UpdateItemAction::class => autowire(),
+    ListEntriesAction::class => autowire(),
+    SetEntryAction::class => autowire(),
 ];

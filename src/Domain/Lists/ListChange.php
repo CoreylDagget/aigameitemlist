@@ -8,7 +8,14 @@ use DateTimeImmutable;
 
 final class ListChange
 {
+    public const TYPE_ADD_ITEM = 'add_item';
+    public const TYPE_EDIT_ITEM = 'edit_item';
+    public const TYPE_REMOVE_ITEM = 'remove_item';
+    public const TYPE_ADD_TAG = 'add_tag';
+    public const TYPE_EDIT_TAG = 'edit_tag';
+    public const TYPE_REMOVE_TAG = 'remove_tag';
     public const TYPE_LIST_METADATA = 'list_metadata';
+    public const TYPE_PUBLISH_TOGGLE = 'publish_toggle';
 
     public const STATUS_PENDING = 'pending';
     public const STATUS_APPROVED = 'approved';

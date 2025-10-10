@@ -32,13 +32,7 @@ final class ListService
 
     public function getListForOwner(string $accountId, string $listId): GameList
     {
-        $list = $this->lists->findByIdForOwner($listId, $accountId);
-
-        if ($list === null) {
-            throw new InvalidArgumentException('List not found');
-        }
-
-        return $list;
+        return $this->requireListOwnedByAccount($accountId, $listId, 'You are not allowed to access this list.');
     }
 
     public function createList(
@@ -59,17 +53,7 @@ final class ListService
 
     public function proposeMetadataUpdate(string $accountId, string $listId, array $changes): ListChange
     {
-        $list = $this->lists->findByIdForOwner($listId, $accountId);
-
-        if ($list === null) {
-            $existing = $this->lists->findById($listId);
-
-            if ($existing === null) {
-                throw new InvalidArgumentException('List not found');
-            }
-
-            throw new DomainException('You are not allowed to modify this list.');
-        }
+        $list = $this->requireListOwnedByAccount($accountId, $listId, 'You are not allowed to modify this list.');
 
         if (!array_key_exists('name', $changes) && !array_key_exists('description', $changes)) {
             throw new InvalidArgumentException('No changes provided.');
@@ -117,17 +101,7 @@ final class ListService
 
     public function publishList(string $accountId, string $listId): GameList
     {
-        $list = $this->lists->findByIdForOwner($listId, $accountId);
-
-        if ($list === null) {
-            $existing = $this->lists->findById($listId);
-
-            if ($existing === null) {
-                throw new InvalidArgumentException('List not found');
-            }
-
-            throw new DomainException('You are not allowed to publish this list.');
-        }
+        $list = $this->requireListOwnedByAccount($accountId, $listId, 'You are not allowed to publish this list.');
 
         if ($list->isPublished()) {
             return $list;
@@ -140,5 +114,22 @@ final class ListService
         }
 
         return $updated;
+    }
+
+    public function requireListOwnedByAccount(string $accountId, string $listId, string $unauthorizedMessage): GameList
+    {
+        $list = $this->lists->findByIdForOwner($listId, $accountId);
+
+        if ($list !== null) {
+            return $list;
+        }
+
+        $existing = $this->lists->findById($listId);
+
+        if ($existing === null) {
+            throw new InvalidArgumentException('List not found');
+        }
+
+        throw new DomainException($unauthorizedMessage);
     }
 }
