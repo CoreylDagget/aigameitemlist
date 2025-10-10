@@ -31,6 +31,8 @@ final class CreateItemAction
         $data = (array) $request->getParsedBody();
         $name = isset($data['name']) ? trim((string) $data['name']) : '';
         $storageType = isset($data['storageType']) ? (string) $data['storageType'] : '';
+        $errors = [];
+
         $description = null;
 
         if (array_key_exists('description', $data)) {
@@ -54,9 +56,8 @@ final class CreateItemAction
                 $imageUrl = $imageUrlValue;
             }
         }
-        $tagIdsRaw = $data['tagIds'] ?? [];
 
-        $errors = [];
+        $tagIdsRaw = $data['tagIds'] ?? [];
 
         if ($name === '') {
             $errors['name'] = 'name is required.';
