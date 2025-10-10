@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace GameItemsList\Application\Service\Lists;
 
+use DomainException;
 use GameItemsList\Domain\Game\GameRepositoryInterface;
 use GameItemsList\Domain\Lists\GameList;
 use GameItemsList\Domain\Lists\ListRepositoryInterface;
 use InvalidArgumentException;
+use RuntimeException;
 
 final class ListService
 {
@@ -50,5 +52,32 @@ final class ListService
         }
 
         return $this->lists->create($accountId, $gameId, $name, $description, $isPublished);
+    }
+
+    public function publishList(string $accountId, string $listId): GameList
+    {
+        $list = $this->lists->findByIdForOwner($listId, $accountId);
+
+        if ($list === null) {
+            $existing = $this->lists->findById($listId);
+
+            if ($existing === null) {
+                throw new InvalidArgumentException('List not found');
+            }
+
+            throw new DomainException('You are not allowed to publish this list.');
+        }
+
+        if ($list->isPublished()) {
+            return $list;
+        }
+
+        $updated = $this->lists->publish($listId, $accountId);
+
+        if ($updated === null) {
+            throw new RuntimeException('Failed to publish list');
+        }
+
+        return $updated;
     }
 }

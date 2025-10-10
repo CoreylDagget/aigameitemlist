@@ -52,6 +52,25 @@ final class PdoListRepository implements ListRepositoryInterface
         return $this->hydrateGameList($row);
     }
 
+    public function findById(string $listId): ?GameList
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT l.*, g.id AS game_id, g.name AS game_name FROM lists l '
+            . 'JOIN games g ON g.id = l.game_id '
+            . 'WHERE l.id = :listId '
+            . 'LIMIT 1'
+        );
+        $statement->execute(['listId' => $listId]);
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if ($row === false) {
+            return null;
+        }
+
+        return $this->hydrateGameList($row);
+    }
+
     public function create(
         string $accountId,
         string $gameId,
@@ -94,6 +113,31 @@ final class PdoListRepository implements ListRepositoryInterface
         $row['game_name'] = $gameRow['name'];
 
         return $this->hydrateGameList($row);
+    }
+
+    public function publish(string $listId, string $ownerAccountId): ?GameList
+    {
+        try {
+            $statement = $this->pdo->prepare(
+                'UPDATE lists SET is_published = TRUE '
+                . 'WHERE id = :list_id AND account_id = :account_id '
+                . 'RETURNING id'
+            );
+            $statement->execute([
+                'list_id' => $listId,
+                'account_id' => $ownerAccountId,
+            ]);
+        } catch (PDOException $exception) {
+            throw new RuntimeException('Failed to publish list', 0, $exception);
+        }
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if ($row === false) {
+            return null;
+        }
+
+        return $this->findByIdForOwner($listId, $ownerAccountId);
     }
 
     private function hydrateGameList(array $row): GameList
