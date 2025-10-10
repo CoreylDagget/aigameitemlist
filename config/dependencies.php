@@ -9,6 +9,7 @@ use GameItemsList\Application\Action\Lists\CreateListAction;
 use GameItemsList\Application\Action\Lists\ListIndexAction;
 use GameItemsList\Application\Action\Lists\GetListAction;
 use GameItemsList\Application\Action\Lists\PublishListAction;
+use GameItemsList\Application\Action\Lists\UpdateListAction;
 use GameItemsList\Application\Action\OpenApiAction;
 use GameItemsList\Application\Action\SwaggerUiAction;
 use GameItemsList\Application\Http\JsonResponder;
@@ -19,9 +20,11 @@ use GameItemsList\Application\Service\Auth\RegisterAccountService;
 use GameItemsList\Application\Service\Lists\ListService;
 use GameItemsList\Domain\Account\AccountRepositoryInterface;
 use GameItemsList\Domain\Game\GameRepositoryInterface;
+use GameItemsList\Domain\Lists\ListChangeRepositoryInterface;
 use GameItemsList\Domain\Lists\ListRepositoryInterface;
 use GameItemsList\Infrastructure\Persistence\Account\PdoAccountRepository;
 use GameItemsList\Infrastructure\Persistence\Game\PdoGameRepository;
+use GameItemsList\Infrastructure\Persistence\Lists\PdoListChangeRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoListRepository;
 use PDO;
 use Psr\Container\ContainerInterface;
@@ -71,6 +74,9 @@ return [
     ListRepositoryInterface::class => static fn(ContainerInterface $container): ListRepositoryInterface
         => new PdoListRepository($container->get(PDO::class)),
 
+    ListChangeRepositoryInterface::class => static fn(ContainerInterface $container): ListChangeRepositoryInterface
+        => new PdoListChangeRepository($container->get(PDO::class)),
+
     RegisterAccountService::class => autowire(),
     AuthenticateAccountService::class => autowire(),
     ListService::class => autowire(),
@@ -86,4 +92,5 @@ return [
     CreateListAction::class => autowire(),
     GetListAction::class => autowire(),
     PublishListAction::class => autowire(),
+    UpdateListAction::class => autowire(),
 ];
