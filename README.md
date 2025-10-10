@@ -66,3 +66,8 @@ make down
 
 ## Health Endpoint
 `GET /health` liefert eine JSON-Antwort mit Service-Status, um Deployments und lokale Setups schnell prüfen zu können. Dieser Endpoint wird von Docker Compose beim lokalen Smoke-Test genutzt und dient später als Basis für Monitoring Checks.
+
+## OpenAPI & Dokumentation
+- Die aktuelle API-Spezifikation liegt unter [`/openapi.yaml`](openapi.yaml) und beschreibt alle v1-Endpunkte inkl. Fehlerobjekten.
+- Eine Swagger-UI mit der Spezifikation ist unter `http://localhost:8080/docs` (bzw. hinter NGINX unter `https://api.gameitemslist.local/docs`) verfügbar.
+- Änderungen an Endpunkten **müssen zuerst** in der OpenAPI-Datei vorgenommen und anschließend implementiert werden, damit das Contract-First-Vorgehen gewährleistet ist.
