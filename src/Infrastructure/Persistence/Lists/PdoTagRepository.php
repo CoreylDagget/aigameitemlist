@@ -78,4 +78,3 @@ final class PdoTagRepository implements TagRepositoryInterface
         return Tag::fromDatabaseRow($row);
     }
 }
-

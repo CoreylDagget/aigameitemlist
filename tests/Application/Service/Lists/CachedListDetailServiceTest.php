@@ -203,4 +203,3 @@ final class CachedListDetailServiceTest extends TestCase
         $service->invalidateListDetail('account-1', 'list-1');
     }
 }
-

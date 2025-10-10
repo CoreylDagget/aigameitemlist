@@ -12,4 +12,3 @@ interface CacheInterface
 
     public function delete(string $key): void;
 }
-

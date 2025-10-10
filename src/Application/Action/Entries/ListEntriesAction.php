@@ -55,4 +55,3 @@ final class ListEntriesAction
         return $this->responder->respond(['data' => $data]);
     }
 }
-

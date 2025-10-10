@@ -31,4 +31,3 @@ interface ListDetailCacheInterface
 
     public function invalidateListDetail(string $accountId, string $listId): void;
 }
-

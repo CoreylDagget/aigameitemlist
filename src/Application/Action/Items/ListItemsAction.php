@@ -92,4 +92,3 @@ final class ListItemsAction
         return $this->responder->respond(['data' => $data]);
     }
 }
-

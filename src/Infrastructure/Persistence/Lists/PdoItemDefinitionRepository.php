@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace GameItemsList\Infrastructure\Persistence\Lists;
@@ -93,7 +92,9 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
 
     public function findByIdForList(string $itemId, string $listId): ?ItemDefinition
     {
-        $statement = $this->pdo->prepare('SELECT * FROM item_definitions WHERE id = :item_id AND list_id = :list_id LIMIT 1');
+        $statement = $this->pdo->prepare(
+            'SELECT * FROM item_definitions WHERE id = :item_id AND list_id = :list_id LIMIT 1'
+        );
         $statement->execute([
             'item_id' => $itemId,
             'list_id' => $listId,
@@ -300,4 +301,3 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
         }
     }
 }
-

@@ -45,4 +45,3 @@ final class InMemoryCache implements CacheInterface
         unset($this->store[$key]);
     }
 }
-

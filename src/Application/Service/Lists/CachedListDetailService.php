@@ -207,4 +207,3 @@ final class CachedListDetailService implements ListDetailCacheInterface
         return true;
     }
 }
-

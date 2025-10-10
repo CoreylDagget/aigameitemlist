@@ -37,7 +37,12 @@ final class CreateListAction
         }
 
         if ($errors !== []) {
-            return $this->responder->problem(400, 'Invalid request', 'Validation failed.', additional: ['errors' => $errors]);
+            return $this->responder->problem(
+                400,
+                'Invalid request',
+                'Validation failed.',
+                additional: ['errors' => $errors],
+            );
         }
 
         $accountId = (string) $request->getAttribute('account_id');
