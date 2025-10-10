@@ -31,6 +31,7 @@ Accounts können Listen (pro Spiel) anlegen, Items und Kategorien verwalten (mit
    ```bash
    cp .env.example .env
    ```
+   > Hinweis: Aktualisiere in der neuen `.env` mindestens `JWT_SECRET` auf einen sicheren Wert, bevor du Tokens ausstellst.
 2. Installiere PHP-Abhängigkeiten (lokal oder im Container):
    ```bash
    make install
