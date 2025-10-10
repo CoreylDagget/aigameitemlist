@@ -36,7 +36,7 @@ final class ListChangesAction
 
         return $this->responder->respond([
             'data' => array_map(
-                fn(ListChange $change): array => $this->formatChange($change),
+                fn (ListChange $change): array => $this->formatChange($change),
                 $changes
             ),
         ]);

@@ -32,7 +32,7 @@ final class PdoItemDefinitionRepositoryTest extends TestCase
 
         self::assertSame(
             ['item-1', 'item-3'],
-            array_map(static fn(ItemDefinition $item): string => $item->id(), $items)
+            array_map(static fn (ItemDefinition $item): string => $item->id(), $items)
         );
     }
 
@@ -41,13 +41,13 @@ final class PdoItemDefinitionRepositoryTest extends TestCase
         $ownedItems = $this->repository->findByList('list-1', 'account-1', null, true);
         self::assertSame(
             ['item-1'],
-            array_map(static fn(ItemDefinition $item): string => $item->id(), $ownedItems)
+            array_map(static fn (ItemDefinition $item): string => $item->id(), $ownedItems)
         );
 
         $unownedItems = $this->repository->findByList('list-1', 'account-1', null, false);
         self::assertSame(
             ['item-2', 'item-3'],
-            array_map(static fn(ItemDefinition $item): string => $item->id(), $unownedItems)
+            array_map(static fn (ItemDefinition $item): string => $item->id(), $unownedItems)
         );
     }
 
@@ -57,7 +57,7 @@ final class PdoItemDefinitionRepositoryTest extends TestCase
 
         self::assertSame(
             ['item-2'],
-            array_map(static fn(ItemDefinition $item): string => $item->id(), $items)
+            array_map(static fn (ItemDefinition $item): string => $item->id(), $items)
         );
     }
 
@@ -67,7 +67,7 @@ final class PdoItemDefinitionRepositoryTest extends TestCase
 
         self::assertSame(
             ['item-3'],
-            array_map(static fn(ItemDefinition $item): string => $item->id(), $items)
+            array_map(static fn (ItemDefinition $item): string => $item->id(), $items)
         );
     }
 

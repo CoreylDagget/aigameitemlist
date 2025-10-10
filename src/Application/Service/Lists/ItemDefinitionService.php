@@ -215,7 +215,7 @@ final class ItemDefinitionService
 
             /** @var array<int, string>|null $tagIdsValue */
             $normalizedTagIds = $this->normalizeTagIds($listId, $tagIdsValue ?? []);
-            $existingTagIds = array_map(static fn($tag) => $tag->id(), $item->tags());
+            $existingTagIds = array_map(static fn ($tag) => $tag->id(), $item->tags());
 
             sort($normalizedTagIds);
             $sortedExisting = $existingTagIds;

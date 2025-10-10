@@ -23,7 +23,7 @@ final class PdoTagRepository implements TagRepositoryInterface
 
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        return array_map(static fn(array $row): Tag => Tag::fromDatabaseRow($row), $rows);
+        return array_map(static fn (array $row): Tag => Tag::fromDatabaseRow($row), $rows);
     }
 
     public function findByIds(string $listId, array $tagIds): array
@@ -51,7 +51,7 @@ final class PdoTagRepository implements TagRepositoryInterface
 
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        return array_map(static fn(array $row): Tag => Tag::fromDatabaseRow($row), $rows);
+        return array_map(static fn (array $row): Tag => Tag::fromDatabaseRow($row), $rows);
     }
 
     public function create(string $listId, string $name, ?string $color): Tag

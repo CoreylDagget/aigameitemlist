@@ -42,7 +42,7 @@ final class PdoItemEntryRepository implements ItemEntryRepositoryInterface
 
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        return array_map(static fn(array $row): ItemEntry => ItemEntry::fromDatabaseRow($row), $rows);
+        return array_map(static fn (array $row): ItemEntry => ItemEntry::fromDatabaseRow($row), $rows);
     }
 
     public function upsert(

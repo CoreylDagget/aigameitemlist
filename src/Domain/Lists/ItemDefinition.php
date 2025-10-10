@@ -64,7 +64,7 @@ final class ItemDefinition
 
     /**
      * @param array<string, mixed> $row
-     * @param Tag[]                 $tags
+     * @param Tag[] $tags
      */
     public static function fromDatabaseRow(array $row, array $tags = []): self
     {
