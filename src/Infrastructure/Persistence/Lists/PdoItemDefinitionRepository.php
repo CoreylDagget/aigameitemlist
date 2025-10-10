@@ -8,12 +8,11 @@ use GameItemsList\Domain\Lists\ItemDefinition;
 use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\Tag;
 use InvalidArgumentException;
-
-use function mb_strtolower;
-
 use PDO;
 use PDOException;
 use RuntimeException;
+
+use function mb_strtolower;
 
 final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInterface
 {
