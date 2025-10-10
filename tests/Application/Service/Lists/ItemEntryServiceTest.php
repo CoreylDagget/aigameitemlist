@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GameItemsList\Tests\Application\Service\Lists;
 
 use GameItemsList\Application\Service\Lists\ItemEntryService;
+use GameItemsList\Application\Service\Lists\ListDetailCacheInterface;
 use GameItemsList\Application\Service\Lists\ListService;
 use GameItemsList\Domain\Game\Game;
 use GameItemsList\Domain\Lists\GameList;
@@ -56,7 +57,12 @@ final class ItemEntryServiceTest extends TestCase
             ->with('list-1', 'item-1', 'account-1', true, ItemDefinition::STORAGE_BOOLEAN)
             ->willReturn($expectedEntry);
 
-        $service = new ItemEntryService($listService, $entries, $itemDefinitions);
+        $listCache = $this->createMock(ListDetailCacheInterface::class);
+        $listCache->expects(self::once())
+            ->method('invalidateListDetail')
+            ->with('account-1', 'list-1');
+
+        $service = new ItemEntryService($listService, $entries, $itemDefinitions, $listCache);
 
         $result = $service->setEntry('account-1', 'list-1', 'item-1', true);
 
@@ -84,7 +90,10 @@ final class ItemEntryServiceTest extends TestCase
         $entries = $this->createMock(ItemEntryRepositoryInterface::class);
         $entries->expects(self::never())->method('upsert');
 
-        $service = new ItemEntryService($listService, $entries, $itemDefinitions);
+        $listCache = $this->createMock(ListDetailCacheInterface::class);
+        $listCache->expects(self::never())->method('invalidateListDetail');
+
+        $service = new ItemEntryService($listService, $entries, $itemDefinitions, $listCache);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Value must be zero or greater for count storage.');
