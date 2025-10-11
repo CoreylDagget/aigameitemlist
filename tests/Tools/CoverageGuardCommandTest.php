@@ -94,6 +94,55 @@ TXT);
         );
     }
 
+    public function testAllowsMissingBranchCoverageWhenFlagProvided(): void
+    {
+        $reportPath = $this->createReport(<<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 84.00% (84/100)
+TXT);
+
+        $stdout = fopen('php://memory', 'w+');
+        $stderr = fopen('php://memory', 'w+');
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            $reportPath,
+            '--min-lines=80',
+            '--min-branches=75',
+            '--allow-missing-branches',
+        ], $stdout, $stderr);
+
+        self::assertSame(0, $exitCode);
+        self::assertSame('', $this->getStreamContents($stderr));
+    }
+
+    public function testRejectsNonNumericThresholdValues(): void
+    {
+        $reportPath = $this->createReport(<<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 90.00% (90/100)
+  Branches: 80.00% (80/100)
+TXT);
+
+        $stdout = fopen('php://memory', 'w+');
+        $stderr = fopen('php://memory', 'w+');
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            $reportPath,
+            '--min-lines=eighty',
+            '--min-branches=75',
+        ], $stdout, $stderr);
+
+        self::assertSame(1, $exitCode);
+        self::assertStringContainsString(
+            'Option "min-lines" requires a numeric value.',
+            $this->getStreamContents($stderr),
+        );
+    }
+
     /**
      * @param resource $stream
      */
