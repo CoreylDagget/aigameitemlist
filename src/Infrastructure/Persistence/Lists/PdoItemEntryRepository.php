@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace GameItemsList\Infrastructure\Persistence\Lists;
 
+use DateTimeImmutable;
 use GameItemsList\Domain\Lists\ItemEntry;
 use GameItemsList\Domain\Lists\ItemEntryRepositoryInterface;
 use GameItemsList\Infrastructure\Persistence\UuidGenerator;
 use PDO;
+use PDOException;
 use RuntimeException;
 
 final class PdoItemEntryRepository implements ItemEntryRepositoryInterface
@@ -65,28 +67,88 @@ final class PdoItemEntryRepository implements ItemEntryRepositoryInterface
             $valueText = (string) $value;
         }
 
-        $id = UuidGenerator::v4();
+        $now = (new DateTimeImmutable())->format('Y-m-d H:i:s.u');
 
-        $sql = <<<'SQL'
-            INSERT INTO item_entries (id, item_definition_id, account_id, value_boolean, value_integer, value_text)
-            VALUES (:id, :item_definition_id, :account_id, :value_boolean, :value_integer, :value_text)
-            ON DUPLICATE KEY UPDATE
-                value_boolean = VALUES(value_boolean),
-                value_integer = VALUES(value_integer),
-                value_text = VALUES(value_text),
-                updated_at = CURRENT_TIMESTAMP(6)
-        SQL;
+        try {
+            $this->pdo->beginTransaction();
 
-        $statement = $this->pdo->prepare($sql);
+            $existingSql = <<<'SQL'
+                SELECT id
+                FROM item_entries
+                WHERE item_definition_id = :item_definition_id
+                  AND account_id = :account_id
+                LIMIT 1
+            SQL;
 
-        $statement->execute([
-            'id' => $id,
-            'item_definition_id' => $itemId,
-            'account_id' => $accountId,
-            'value_boolean' => $valueBoolean,
-            'value_integer' => $valueInteger,
-            'value_text' => $valueText,
-        ]);
+            $existingStatement = $this->pdo->prepare($existingSql);
+            $existingStatement->execute([
+                'item_definition_id' => $itemId,
+                'account_id' => $accountId,
+            ]);
+
+            $existingRow = $existingStatement->fetch(PDO::FETCH_ASSOC);
+
+            if ($existingRow === false) {
+                $id = UuidGenerator::v4();
+
+                $insert = $this->pdo->prepare(
+                    'INSERT INTO item_entries (
+                        id,
+                        item_definition_id,
+                        account_id,
+                        value_boolean,
+                        value_integer,
+                        value_text,
+                        updated_at
+                    ) VALUES (
+                        :id,
+                        :item_definition_id,
+                        :account_id,
+                        :value_boolean,
+                        :value_integer,
+                        :value_text,
+                        :updated_at
+                    )'
+                );
+
+                $insert->execute([
+                    'id' => $id,
+                    'item_definition_id' => $itemId,
+                    'account_id' => $accountId,
+                    'value_boolean' => $valueBoolean,
+                    'value_integer' => $valueInteger,
+                    'value_text' => $valueText,
+                    'updated_at' => $now,
+                ]);
+            } else {
+                $id = $existingRow['id'];
+
+                $update = $this->pdo->prepare(
+                    'UPDATE item_entries SET
+                        value_boolean = :value_boolean,
+                        value_integer = :value_integer,
+                        value_text = :value_text,
+                        updated_at = :updated_at
+                    WHERE id = :id'
+                );
+
+                $update->execute([
+                    'value_boolean' => $valueBoolean,
+                    'value_integer' => $valueInteger,
+                    'value_text' => $valueText,
+                    'updated_at' => $now,
+                    'id' => $id,
+                ]);
+            }
+
+            $this->pdo->commit();
+        } catch (PDOException $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw new RuntimeException('Failed to persist item entry', 0, $exception);
+        }
 
         $selectSql = <<<'SQL'
             SELECT
