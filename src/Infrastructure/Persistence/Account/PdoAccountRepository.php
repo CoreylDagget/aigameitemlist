@@ -49,7 +49,8 @@ final class PdoAccountRepository implements AccountRepositoryInterface
 
         try {
             $statement = $this->pdo->prepare(
-                'INSERT INTO accounts (id, email, password_hash, is_admin) VALUES (:id, :email, :password_hash, :is_admin)'
+                'INSERT INTO accounts (id, email, password_hash, is_admin) ' .
+                'VALUES (:id, :email, :password_hash, :is_admin)'
             );
             $statement->execute([
                 'id' => $id,
