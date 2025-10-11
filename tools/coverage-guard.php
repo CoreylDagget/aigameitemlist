@@ -110,6 +110,10 @@ function parseArguments(array $argv): array
         }
 
         if (!str_starts_with($argument, '--')) {
+            if (array_key_exists('file', $options)) {
+                throw new \InvalidArgumentException('Multiple coverage report paths provided. Provide only one.');
+            }
+
             $options['file'] = $argument;
 
             continue;
