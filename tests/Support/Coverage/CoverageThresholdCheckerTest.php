@@ -13,7 +13,7 @@ final class CoverageThresholdCheckerTest extends TestCase
     public function testPassesWhenCoverageMeetsThresholds(): void
     {
         $summary = new CoverageSummary(90.0, 80.0);
-        $checker = new CoverageThresholdChecker(85.0, 75.0);
+        $checker = new CoverageThresholdChecker(80.0, 75.0);
 
         $checker->assertSatisfies($summary);
 

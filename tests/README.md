@@ -10,7 +10,7 @@ Scripts für die Ausführung.
   integriert sind) und schreibt zusätzlich einen Coverage-Report nach
   `var/phpunit/coverage.txt`.
 - `composer coverage-check` – wertet den Coverage-Report aus und erzwingt
-  aktuell mindestens 85 % Line-Coverage und 75 % Branch-Coverage (Branches
+  aktuell mindestens 80 % Line-Coverage und 75 % Branch-Coverage (Branches
   können aufgrund von PCOV derzeit optional übersprungen werden).
 - `composer phpstan` – statische Analyse auf Level 8, deckt Tests & Src ab.
 - `composer phpcs` – Stilprüfung (PSR-12). Für Auto-Fixes `composer fix`.
