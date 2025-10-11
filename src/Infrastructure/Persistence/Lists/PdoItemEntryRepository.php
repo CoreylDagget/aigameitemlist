@@ -72,9 +72,15 @@ final class PdoItemEntryRepository implements ItemEntryRepositoryInterface
         try {
             $this->pdo->beginTransaction();
 
-            $existingStatement = $this->pdo->prepare(
-                'SELECT id FROM item_entries WHERE item_definition_id = :item_definition_id AND account_id = :account_id LIMIT 1'
-            );
+            $existingSql = <<<'SQL'
+                SELECT id
+                FROM item_entries
+                WHERE item_definition_id = :item_definition_id
+                  AND account_id = :account_id
+                LIMIT 1
+            SQL;
+
+            $existingStatement = $this->pdo->prepare($existingSql);
             $existingStatement->execute([
                 'item_definition_id' => $itemId,
                 'account_id' => $accountId,
