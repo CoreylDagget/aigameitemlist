@@ -52,6 +52,17 @@ TXT);
         self::assertSame('', $this->getStreamContents($stderr));
     }
 
+    public function testFailsWhenNoArgumentsProvided(): void
+    {
+        $stdout = fopen('php://memory', 'w+');
+        $stderr = fopen('php://memory', 'w+');
+
+        $exitCode = runCoverageGuard(['coverage-guard.php'], $stdout, $stderr);
+
+        self::assertSame(1, $exitCode);
+        self::assertSame(COVERAGE_GUARD_USAGE, $this->getStreamContents($stderr));
+    }
+
     public function testFailsWhenReportIsMissing(): void
     {
         $stdout = fopen('php://memory', 'w+');
@@ -92,6 +103,28 @@ TXT);
             'Line coverage 60.00% is below required minimum of 80.00%.',
             $this->getStreamContents($stderr),
         );
+    }
+
+    public function testFailsWhenRequiredThresholdsMissing(): void
+    {
+        $reportPath = $this->createReport(<<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 88.00% (88/100)
+  Branches: 81.00% (81/100)
+TXT);
+
+        $stdout = fopen('php://memory', 'w+');
+        $stderr = fopen('php://memory', 'w+');
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            $reportPath,
+            '--min-lines=80',
+        ], $stdout, $stderr);
+
+        self::assertSame(1, $exitCode);
+        self::assertSame(COVERAGE_GUARD_USAGE, $this->getStreamContents($stderr));
     }
 
     public function testAllowsMissingBranchCoverageWhenFlagProvided(): void
@@ -143,6 +176,33 @@ TXT);
         );
     }
 
+    public function testFailsWhenUnknownOptionProvided(): void
+    {
+        $reportPath = $this->createReport(<<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 90.00% (90/100)
+  Branches: 82.00% (82/100)
+TXT);
+
+        $stdout = fopen('php://memory', 'w+');
+        $stderr = fopen('php://memory', 'w+');
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            $reportPath,
+            '--min-lines=80',
+            '--min-branches=75',
+            '--unexpected=1',
+        ], $stdout, $stderr);
+
+        self::assertSame(1, $exitCode);
+        self::assertStringContainsString(
+            'Unknown option "unexpected".',
+            $this->getStreamContents($stderr),
+        );
+    }
+
     public function testAcceptsDashToReadReportFromStdIn(): void
     {
         $stdin = fopen('php://memory', 'w+');
@@ -187,6 +247,39 @@ TXT);
         self::assertSame(1, $exitCode);
         self::assertStringContainsString(
             'Coverage report from STDIN is empty.',
+            $this->getStreamContents($stderr),
+        );
+    }
+
+    public function testFailsWhenMultipleReportPathsProvided(): void
+    {
+        $firstReport = $this->createReport(<<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 90.00% (90/100)
+  Branches: 82.00% (82/100)
+TXT);
+        $secondReport = $this->createReport(<<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 91.00% (91/100)
+  Branches: 83.00% (83/100)
+TXT);
+
+        $stdout = fopen('php://memory', 'w+');
+        $stderr = fopen('php://memory', 'w+');
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            $firstReport,
+            $secondReport,
+            '--min-lines=80',
+            '--min-branches=75',
+        ], $stdout, $stderr);
+
+        self::assertSame(1, $exitCode);
+        self::assertStringContainsString(
+            'Multiple coverage report paths provided. Provide only one.',
             $this->getStreamContents($stderr),
         );
     }
