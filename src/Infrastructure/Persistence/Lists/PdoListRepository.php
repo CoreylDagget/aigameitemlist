@@ -7,6 +7,7 @@ namespace GameItemsList\Infrastructure\Persistence\Lists;
 use GameItemsList\Domain\Game\Game;
 use GameItemsList\Domain\Lists\GameList;
 use GameItemsList\Domain\Lists\ListRepositoryInterface;
+use GameItemsList\Infrastructure\Persistence\UuidGenerator;
 use PDO;
 use PDOException;
 use RuntimeException;
@@ -78,13 +79,15 @@ final class PdoListRepository implements ListRepositoryInterface
         ?string $description,
         bool $isPublished
     ): GameList {
+        $id = UuidGenerator::v4();
+
         try {
             $statement = $this->pdo->prepare(
-                'INSERT INTO lists (account_id, game_id, name, description, is_published) '
-                . 'VALUES (:account_id, :game_id, :name, :description, :is_published) '
-                . 'RETURNING *'
+                'INSERT INTO lists (id, account_id, game_id, name, description, is_published) '
+                . 'VALUES (:id, :account_id, :game_id, :name, :description, :is_published)'
             );
             $statement->execute([
+                'id' => $id,
                 'account_id' => $accountId,
                 'game_id' => $gameId,
                 'name' => $name,
@@ -95,24 +98,13 @@ final class PdoListRepository implements ListRepositoryInterface
             throw new RuntimeException('Failed to create list', 0, $exception);
         }
 
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        $list = $this->findByIdForOwner($id, $accountId);
 
-        if ($row === false) {
+        if ($list === null) {
             throw new RuntimeException('Failed to fetch created list');
         }
 
-        $gameRowStatement = $this->pdo->prepare('SELECT id, name FROM games WHERE id = :id');
-        $gameRowStatement->execute(['id' => $gameId]);
-        $gameRow = $gameRowStatement->fetch(PDO::FETCH_ASSOC);
-
-        if ($gameRow === false) {
-            throw new RuntimeException('Associated game not found');
-        }
-
-        $row['game_id'] = $gameRow['id'];
-        $row['game_name'] = $gameRow['name'];
-
-        return $this->hydrateGameList($row);
+        return $list;
     }
 
     public function publish(string $listId, string $ownerAccountId): ?GameList
@@ -120,8 +112,7 @@ final class PdoListRepository implements ListRepositoryInterface
         try {
             $statement = $this->pdo->prepare(
                 'UPDATE lists SET is_published = TRUE '
-                . 'WHERE id = :list_id AND account_id = :account_id '
-                . 'RETURNING id'
+                . 'WHERE id = :list_id AND account_id = :account_id'
             );
             $statement->execute([
                 'list_id' => $listId,
@@ -131,9 +122,7 @@ final class PdoListRepository implements ListRepositoryInterface
             throw new RuntimeException('Failed to publish list', 0, $exception);
         }
 
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
-
-        if ($row === false) {
+        if ($statement->rowCount() === 0) {
             return null;
         }
 
@@ -175,7 +164,7 @@ final class PdoListRepository implements ListRepositoryInterface
             return $list;
         }
 
-        $sql = sprintf('UPDATE lists SET %s WHERE id = :list_id RETURNING *', implode(', ', $set));
+        $sql = sprintf('UPDATE lists SET %s WHERE id = :list_id', implode(', ', $set));
 
         try {
             $statement = $this->pdo->prepare($sql);

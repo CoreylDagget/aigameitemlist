@@ -6,6 +6,7 @@ namespace GameItemsList\Infrastructure\Persistence\Lists;
 
 use GameItemsList\Domain\Lists\ItemEntry;
 use GameItemsList\Domain\Lists\ItemEntryRepositoryInterface;
+use GameItemsList\Infrastructure\Persistence\UuidGenerator;
 use PDO;
 use RuntimeException;
 
@@ -64,43 +65,56 @@ final class PdoItemEntryRepository implements ItemEntryRepositoryInterface
             $valueText = (string) $value;
         }
 
+        $id = UuidGenerator::v4();
+
         $sql = <<<'SQL'
-            WITH upsert AS (
-                INSERT INTO item_entries (item_definition_id, account_id, value_boolean, value_integer, value_text)
-                VALUES (:item_definition_id, :account_id, :value_boolean, :value_integer, :value_text)
-                ON CONFLICT (item_definition_id, account_id) DO UPDATE SET
-                    value_boolean = EXCLUDED.value_boolean,
-                    value_integer = EXCLUDED.value_integer,
-                    value_text = EXCLUDED.value_text,
-                    updated_at = NOW()
-                RETURNING id, item_definition_id, account_id, value_boolean, value_integer, value_text, updated_at
-            )
-            SELECT
-                u.id,
-                u.item_definition_id,
-                u.account_id,
-                u.value_boolean,
-                u.value_integer,
-                u.value_text,
-                u.updated_at,
-                d.list_id
-            FROM upsert u
-            INNER JOIN item_definitions d ON d.id = u.item_definition_id
-            WHERE d.list_id = :list_id
+            INSERT INTO item_entries (id, item_definition_id, account_id, value_boolean, value_integer, value_text)
+            VALUES (:id, :item_definition_id, :account_id, :value_boolean, :value_integer, :value_text)
+            ON DUPLICATE KEY UPDATE
+                value_boolean = VALUES(value_boolean),
+                value_integer = VALUES(value_integer),
+                value_text = VALUES(value_text),
+                updated_at = CURRENT_TIMESTAMP(6)
         SQL;
 
         $statement = $this->pdo->prepare($sql);
 
         $statement->execute([
+            'id' => $id,
             'item_definition_id' => $itemId,
             'account_id' => $accountId,
             'value_boolean' => $valueBoolean,
             'value_integer' => $valueInteger,
             'value_text' => $valueText,
+        ]);
+
+        $selectSql = <<<'SQL'
+            SELECT
+                e.id,
+                e.item_definition_id,
+                e.account_id,
+                e.value_boolean,
+                e.value_integer,
+                e.value_text,
+                e.updated_at,
+                d.list_id
+            FROM item_entries e
+            INNER JOIN item_definitions d ON d.id = e.item_definition_id
+            WHERE e.item_definition_id = :item_definition_id
+              AND e.account_id = :account_id
+              AND d.list_id = :list_id
+            LIMIT 1
+        SQL;
+
+        $select = $this->pdo->prepare($selectSql);
+
+        $select->execute([
+            'item_definition_id' => $itemId,
+            'account_id' => $accountId,
             'list_id' => $listId,
         ]);
 
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        $row = $select->fetch(PDO::FETCH_ASSOC);
 
         if ($row === false) {
             throw new RuntimeException('Failed to persist item entry');

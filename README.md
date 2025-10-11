@@ -15,7 +15,7 @@ Accounts können Listen (pro Spiel) anlegen, Items und Kategorien verwalten (mit
 ## Tech
 - PHP 8.3, Slim 4, Composer
 - NGINX + PHP-FPM (Docker)
-- MySQL/MariaDB (primärer Datenspeicher) mit PostgreSQL als kompatibler Fallback, Redis
+- MariaDB 11 (primärer Datenspeicher) und Redis
 - OpenAPI 3.1 + Swagger UI
 - PHPUnit, PHPStan, PHPCS/PHP CS Fixer
 - Xdebug (dev)
@@ -49,8 +49,7 @@ make health
 ### Dienste im Stack
 - **gil-php**: PHP-FPM Container (Slim App + Composer)
 - **gil-nginx**: NGINX Reverse Proxy vor PHP-FPM
-- **Datenbank (MySQL/MariaDB)**: Compose-Defaults wechseln auf einen MySQL-/MariaDB-Dienst; bis dahin kann das bestehende Postgres-Setup als Fallback genutzt werden.
-- **gil-postgres**: PostgreSQL 16 mit persistentem Volume `db_data` (Kompatibilitäts-Pfad, solange MySQL-Dienste ausgerollt werden)
+- **gil-mariadb**: MariaDB 11.4 mit persistentem Volume `db_data` und automatischem Schema-Bootstrap über `docker/mariadb/initdb.d`
 - **gil-redis**: Redis 7 mit persistentem Volume `redis_data`
 
 Zum Herunterfahren aller Dienste:

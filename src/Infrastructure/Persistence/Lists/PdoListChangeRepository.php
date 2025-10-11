@@ -6,6 +6,7 @@ namespace GameItemsList\Infrastructure\Persistence\Lists;
 
 use GameItemsList\Domain\Lists\ListChange;
 use GameItemsList\Domain\Lists\ListChangeRepositoryInterface;
+use GameItemsList\Infrastructure\Persistence\UuidGenerator;
 use JsonException;
 use PDO;
 use PDOException;
@@ -25,14 +26,16 @@ final class PdoListChangeRepository implements ListChangeRepositoryInterface
             throw new RuntimeException('Failed to encode change payload', 0, $exception);
         }
 
+        $id = UuidGenerator::v4();
+
         try {
             $statement = $this->pdo->prepare(
-                'INSERT INTO list_changes (list_id, actor_account_id, type, payload, status) '
-                . 'VALUES (:list_id, :actor_account_id, :type, :payload, :status) '
-                . 'RETURNING *'
+                'INSERT INTO list_changes (id, list_id, actor_account_id, type, payload, status) '
+                . 'VALUES (:id, :list_id, :actor_account_id, :type, :payload, :status)'
             );
 
             $statement->execute([
+                'id' => $id,
                 'list_id' => $listId,
                 'actor_account_id' => $actorAccountId,
                 'type' => $type,
@@ -43,13 +46,13 @@ final class PdoListChangeRepository implements ListChangeRepositoryInterface
             throw new RuntimeException('Failed to create list change', 0, $exception);
         }
 
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        $change = $this->findById($id);
 
-        if ($row === false) {
+        if ($change === null) {
             throw new RuntimeException('Failed to fetch created list change');
         }
 
-        return ListChange::fromDatabaseRow($row);
+        return $change;
     }
 
     public function findByStatus(?string $status = null): array
@@ -110,9 +113,8 @@ final class PdoListChangeRepository implements ListChangeRepositoryInterface
         try {
             $statement = $this->pdo->prepare(
                 'UPDATE list_changes '
-                . 'SET status = :status, reviewed_by = :reviewed_by, reviewed_at = NOW() '
-                . 'WHERE id = :id AND status = :current_status '
-                . 'RETURNING *'
+                . 'SET status = :status, reviewed_by = :reviewed_by, reviewed_at = CURRENT_TIMESTAMP(6) '
+                . 'WHERE id = :id AND status = :current_status'
             );
             $statement->execute([
                 'status' => ListChange::STATUS_APPROVED,
@@ -124,13 +126,12 @@ final class PdoListChangeRepository implements ListChangeRepositoryInterface
             throw new RuntimeException('Failed to approve list change', 0, $exception);
         }
 
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
-
-        if ($row === false) {
+        if ($statement->rowCount() === 0) {
             throw new RuntimeException('Failed to fetch approved list change');
         }
 
-        return ListChange::fromDatabaseRow($row);
+        return $this->findById($changeId)
+            ?? throw new RuntimeException('Failed to fetch approved list change');
     }
 
     public function markRejected(string $changeId, string $reviewerAccountId): ListChange
@@ -138,9 +139,8 @@ final class PdoListChangeRepository implements ListChangeRepositoryInterface
         try {
             $statement = $this->pdo->prepare(
                 'UPDATE list_changes '
-                . 'SET status = :status, reviewed_by = :reviewed_by, reviewed_at = NOW() '
-                . 'WHERE id = :id AND status = :current_status '
-                . 'RETURNING *'
+                . 'SET status = :status, reviewed_by = :reviewed_by, reviewed_at = CURRENT_TIMESTAMP(6) '
+                . 'WHERE id = :id AND status = :current_status'
             );
             $statement->execute([
                 'status' => ListChange::STATUS_REJECTED,
@@ -152,12 +152,11 @@ final class PdoListChangeRepository implements ListChangeRepositoryInterface
             throw new RuntimeException('Failed to reject list change', 0, $exception);
         }
 
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
-
-        if ($row === false) {
+        if ($statement->rowCount() === 0) {
             throw new RuntimeException('Failed to fetch rejected list change');
         }
 
-        return ListChange::fromDatabaseRow($row);
+        return $this->findById($changeId)
+            ?? throw new RuntimeException('Failed to fetch rejected list change');
     }
 }

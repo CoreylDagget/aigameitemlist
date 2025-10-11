@@ -6,6 +6,7 @@ namespace GameItemsList\Infrastructure\Persistence\Lists;
 
 use GameItemsList\Domain\Lists\Tag;
 use GameItemsList\Domain\Lists\TagRepositoryInterface;
+use GameItemsList\Infrastructure\Persistence\UuidGenerator;
 use PDO;
 use PDOException;
 use RuntimeException;
@@ -56,11 +57,14 @@ final class PdoTagRepository implements TagRepositoryInterface
 
     public function create(string $listId, string $name, ?string $color): Tag
     {
+        $id = UuidGenerator::v4();
+
         try {
             $statement = $this->pdo->prepare(
-                'INSERT INTO list_tags (list_id, name, color) VALUES (:list_id, :name, :color) RETURNING *'
+                'INSERT INTO list_tags (id, list_id, name, color) VALUES (:id, :list_id, :name, :color)'
             );
             $statement->execute([
+                'id' => $id,
                 'list_id' => $listId,
                 'name' => $name,
                 'color' => $color,
@@ -69,6 +73,8 @@ final class PdoTagRepository implements TagRepositoryInterface
             throw new RuntimeException('Failed to create tag', 0, $exception);
         }
 
+        $statement = $this->pdo->prepare('SELECT * FROM list_tags WHERE id = :id LIMIT 1');
+        $statement->execute(['id' => $id]);
         $row = $statement->fetch(PDO::FETCH_ASSOC);
 
         if ($row === false) {
