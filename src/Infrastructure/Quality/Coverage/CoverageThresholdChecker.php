@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GameItemsList\Tests\Support\Coverage;
+namespace GameItemsList\Infrastructure\Quality\Coverage;
 
 use InvalidArgumentException;
 use RuntimeException;

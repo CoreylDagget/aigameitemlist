@@ -12,6 +12,8 @@ Scripts für die Ausführung.
 - `composer coverage-check` – wertet den Coverage-Report aus und erzwingt
   aktuell mindestens 80 % Line-Coverage und 75 % Branch-Coverage (Branches
   können aufgrund von PCOV derzeit optional übersprungen werden).
+  Details zum CLI-Tool lassen sich über `php tools/coverage-guard.php --help`
+  abrufen.
 - `composer phpstan` – statische Analyse auf Level 8, deckt Tests & Src ab.
 - `composer phpcs` – Stilprüfung (PSR-12). Für Auto-Fixes `composer fix`.
 
