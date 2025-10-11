@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-namespace GameItemsList\Tests\Support\Coverage;
+namespace GameItemsList\Tests\Infrastructure\Quality\Coverage;
 
+use GameItemsList\Infrastructure\Quality\Coverage\CoverageSummary;
+use GameItemsList\Infrastructure\Quality\Coverage\CoverageThresholdChecker;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;

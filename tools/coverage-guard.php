@@ -3,51 +3,78 @@
 
 declare(strict_types=1);
 
-use GameItemsList\Tests\Support\Coverage\CoverageSummary;
-use GameItemsList\Tests\Support\Coverage\CoverageThresholdChecker;
+use GameItemsList\Infrastructure\Quality\Coverage\CoverageSummary;
+use GameItemsList\Infrastructure\Quality\Coverage\CoverageThresholdChecker;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-try {
-    $options = parseArguments($argv);
-} catch (\InvalidArgumentException $exception) {
-    fwrite(STDERR, $exception->getMessage() . PHP_EOL);
+const COVERAGE_GUARD_USAGE = "Usage: coverage-guard <report-file> --min-lines=<float> --min-branches=<float> [--allow-missing-branches]\n";
 
-    exit(1);
+/**
+ * @param string[] $argv
+ * @param resource|null $stdout
+ * @param resource|null $stderr
+ */
+function runCoverageGuard(array $argv, $stdout = null, $stderr = null): int
+{
+    $stdout ??= STDOUT;
+    $stderr ??= STDERR;
+
+    try {
+        $options = parseArguments($argv);
+    } catch (\InvalidArgumentException $exception) {
+        fwrite($stderr, $exception->getMessage() . PHP_EOL);
+
+        return 1;
+    }
+
+    if (($options['help'] ?? false) === true) {
+        fwrite($stdout, COVERAGE_GUARD_USAGE);
+
+        return 0;
+    }
+
+    $reportPath = $options['file'] ?? null;
+    $minLines = $options['min-lines'] ?? null;
+    $minBranches = $options['min-branches'] ?? null;
+    $allowMissingBranches = $options['allow-missing-branches'] ?? false;
+
+    if ($reportPath === null || $minLines === null || $minBranches === null) {
+        fwrite($stderr, COVERAGE_GUARD_USAGE);
+
+        return 1;
+    }
+
+    if (!is_file($reportPath)) {
+        fwrite($stderr, sprintf("Coverage report '%s' does not exist." . PHP_EOL, $reportPath));
+
+        return 1;
+    }
+
+    $reportContents = file_get_contents($reportPath);
+
+    if ($reportContents === false) {
+        fwrite($stderr, sprintf("Unable to read coverage report '%s'." . PHP_EOL, $reportPath));
+
+        return 1;
+    }
+
+    try {
+        $summary = CoverageSummary::fromText($reportContents);
+        $checker = new CoverageThresholdChecker($minLines, $minBranches, $allowMissingBranches);
+        $checker->assertSatisfies($summary);
+    } catch (\InvalidArgumentException | \RuntimeException $exception) {
+        fwrite($stderr, $exception->getMessage() . PHP_EOL);
+
+        return 1;
+    }
+
+    return 0;
 }
 
-$reportPath = $options['file'] ?? null;
-$minLines = $options['min-lines'] ?? null;
-$minBranches = $options['min-branches'] ?? null;
-$allowMissingBranches = $options['allow-missing-branches'] ?? false;
-
-if ($reportPath === null || $minLines === null || $minBranches === null) {
-    fwrite(STDERR, "Usage: coverage-guard <report-file> --min-lines=<float> --min-branches=<float> [--allow-missing-branches]\n");
-    exit(1);
+if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
+    exit(runCoverageGuard($argv));
 }
-
-if (!is_file($reportPath)) {
-    fwrite(STDERR, sprintf("Coverage report '%s' does not exist." . PHP_EOL, $reportPath));
-    exit(1);
-}
-
-$reportContents = file_get_contents($reportPath);
-
-if ($reportContents === false) {
-    fwrite(STDERR, sprintf("Unable to read coverage report '%s'." . PHP_EOL, $reportPath));
-    exit(1);
-}
-
-try {
-    $summary = CoverageSummary::fromText($reportContents);
-    $checker = new CoverageThresholdChecker($minLines, $minBranches, $allowMissingBranches);
-    $checker->assertSatisfies($summary);
-} catch (\InvalidArgumentException | \RuntimeException $exception) {
-    fwrite(STDERR, $exception->getMessage() . PHP_EOL);
-    exit(1);
-}
-
-exit(0);
 
 /**
  * @param string[] $argv
@@ -58,6 +85,12 @@ function parseArguments(array $argv): array
     $options = [];
 
     foreach (array_slice($argv, 1) as $argument) {
+        if ($argument === '--help' || $argument === '-h') {
+            $options['help'] = true;
+
+            continue;
+        }
+
         if (!str_starts_with($argument, '--')) {
             $options['file'] = $argument;
 
