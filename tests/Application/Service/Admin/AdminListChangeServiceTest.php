@@ -219,7 +219,7 @@ final class AdminListChangeServiceTest extends TestCase
                 'description' => null,
                 'imageUrl' => 'https://example.test/image.png',
                 'tagIds' => ['tag-1', 'tag-1'],
-                'name' => 'Updated Name',
+                'name' => '  Updated Name  ',
             ],
         );
 
@@ -262,6 +262,45 @@ final class AdminListChangeServiceTest extends TestCase
             ],
         ], $items->updatedItems);
         self::assertFalse($pdo->inTransaction());
+    }
+
+    public function testApproveChangeValidatesEditItemName(): void
+    {
+        $pending = $this->createChange(
+            'change-7b',
+            type: ListChange::TYPE_EDIT_ITEM,
+            payload: [
+                'itemId' => 'item-12',
+                'name' => '   ',
+            ],
+        );
+
+        $changes = new FakeListChangeRepository();
+        $changes->pendingChange = $pending;
+
+        $lists = new FakeListRepository();
+        $lists->list = $this->createList();
+
+        $items = new FakeItemDefinitionRepository();
+        $pdo = $this->createPdo();
+
+        $service = $this->createService(
+            changes: $changes,
+            lists: $lists,
+            items: $items,
+            cache: new FakeListDetailCache(),
+            pdo: $pdo,
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Item update payload missing name.');
+
+        try {
+            $service->approveChange('change-7b', 'reviewer-10');
+        } finally {
+            self::assertSame([], $items->updatedItems);
+            self::assertFalse($pdo->inTransaction());
+        }
     }
 
     public function testApproveChangeValidatesEditItemTagIds(): void

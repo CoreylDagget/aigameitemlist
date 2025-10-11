@@ -7,6 +7,7 @@ namespace GameItemsList\Application\Service\Admin;
 use DomainException;
 use GameItemsList\Application\Service\Lists\ListDetailCacheInterface;
 use GameItemsList\Domain\Lists\GameList;
+use GameItemsList\Domain\Lists\ItemDefinition;
 use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\ListChange;
 use GameItemsList\Domain\Lists\ListChangeRepositoryInterface;
@@ -18,6 +19,12 @@ use Throwable;
 
 final class AdminListChangeService implements AdminListChangeServiceInterface
 {
+    private const ALLOWED_STORAGE_TYPES = [
+        ItemDefinition::STORAGE_BOOLEAN,
+        ItemDefinition::STORAGE_COUNT,
+        ItemDefinition::STORAGE_TEXT,
+    ];
+
     private const ALLOWED_STATUSES = [
         ListChange::STATUS_PENDING,
         ListChange::STATUS_APPROVED,
@@ -155,6 +162,14 @@ final class AdminListChangeService implements AdminListChangeServiceInterface
                 throw new InvalidArgumentException('Tag color must be null or string.');
             }
 
+            if (is_string($colorValue)) {
+                $colorValue = trim($colorValue);
+
+                if ($colorValue === '') {
+                    $colorValue = null;
+                }
+            }
+
             $color = $colorValue;
         }
 
@@ -167,7 +182,9 @@ final class AdminListChangeService implements AdminListChangeServiceInterface
     private function applyAddItem(string $listId, array $payload): void
     {
         $name = $this->requireString($payload, 'name', 'Item payload missing name.');
-        $storageType = $this->requireString($payload, 'storageType', 'Item payload missing storageType.');
+        $storageType = $this->normalizeStorageType(
+            $this->requireString($payload, 'storageType', 'Item payload missing storageType.')
+        );
         $description = $this->nullableString($payload['description'] ?? null, 'description');
         $imageUrl = $this->nullableString($payload['imageUrl'] ?? null, 'imageUrl');
         $tagIds = $this->normalizeTagIds($payload['tagIds'] ?? []);
@@ -199,6 +216,23 @@ final class AdminListChangeService implements AdminListChangeServiceInterface
 
         if (array_key_exists('tagIds', $changes)) {
             $changes['tagIds'] = $this->normalizeTagIds($changes['tagIds']);
+        }
+
+        if (array_key_exists('name', $changes)) {
+            $changes['name'] = $this->requireStringValue(
+                $changes['name'],
+                'Item update payload missing name.'
+            );
+        }
+
+        if (array_key_exists('storageType', $changes)) {
+            $storageType = $changes['storageType'];
+
+            if (!is_string($storageType)) {
+                throw new InvalidArgumentException('storageType must be a string.');
+            }
+
+            $changes['storageType'] = $this->normalizeStorageType($storageType);
         }
 
         $this->items->update($itemId, $listId, $changes);
@@ -262,7 +296,16 @@ final class AdminListChangeService implements AdminListChangeServiceInterface
             throw new InvalidArgumentException($errorMessage);
         }
 
-        return $value;
+        return trim($value);
+    }
+
+    private function requireStringValue(mixed $value, string $errorMessage): string
+    {
+        if (!is_string($value) || trim($value) === '') {
+            throw new InvalidArgumentException($errorMessage);
+        }
+
+        return trim($value);
     }
 
     private function nullableString(mixed $value, string $field): ?string
@@ -275,7 +318,13 @@ final class AdminListChangeService implements AdminListChangeServiceInterface
             throw new InvalidArgumentException(sprintf('%s must be a string or null.', $field));
         }
 
-        return $value;
+        $trimmed = trim($value);
+
+        if ($trimmed === '') {
+            return null;
+        }
+
+        return $trimmed;
     }
 
     /**
@@ -299,9 +348,26 @@ final class AdminListChangeService implements AdminListChangeServiceInterface
                 throw new InvalidArgumentException('tagIds must be strings.');
             }
 
-            $normalized[] = $tagId;
+            $trimmed = trim($tagId);
+
+            if ($trimmed === '') {
+                throw new InvalidArgumentException('tagIds must be non-empty strings.');
+            }
+
+            $normalized[] = $trimmed;
         }
 
         return array_values(array_unique($normalized));
+    }
+
+    private function normalizeStorageType(string $storageType): string
+    {
+        $normalized = strtolower(trim($storageType));
+
+        if (!in_array($normalized, self::ALLOWED_STORAGE_TYPES, true)) {
+            throw new InvalidArgumentException('Invalid storageType supplied.');
+        }
+
+        return $normalized;
     }
 }
