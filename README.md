@@ -10,7 +10,7 @@ Accounts können Listen (pro Spiel) anlegen, Items und Kategorien verwalten (mit
 - **Tags/Kategorien** – Tags je Liste inkl. optionaler HEX-Farbe. Neue Tags werden ebenfalls als Pending Change modelliert.
 - **Persönliche Einträge** – Accounts erfassen Besitz/Anzahl/Freitext über `/entries`, Werte werden je nach Item-Speichertyp validiert.
 - **Filter & Suche** – Item-Listen unterstützen Filter nach Tag, Besitzstatus und Textsuche (Name/Beschreibung).
-- **Offene Punkte** – Admin-Review der Pending Changes sowie serverseitiges Caching sind vorbereitet (ListChange-Records, Redis-Stub), aber noch nicht implementiert.
+- **Admin-Review & Caching** – Pending Changes werden über `/v1/admin/changes` (inkl. `.../approve` & `.../reject`) geprüft und materialisiert. Der account-spezifische Listendetail-Cache für `/v1/lists/{id}` (bereitgestellt vom `CachedListDetailService`) wird nach Admin-Entscheidungen sowie Änderungen an persönlichen Einträgen automatisch invalidiert.
 
 ## Tech
 - PHP 8.3, Slim 4, Composer
