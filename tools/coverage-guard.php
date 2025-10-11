@@ -14,11 +14,13 @@ const COVERAGE_GUARD_USAGE = "Usage: coverage-guard <report-file> --min-lines=<f
  * @param string[] $argv
  * @param resource|null $stdout
  * @param resource|null $stderr
+ * @param resource|null $stdin
  */
-function runCoverageGuard(array $argv, $stdout = null, $stderr = null): int
+function runCoverageGuard(array $argv, $stdout = null, $stderr = null, $stdin = null): int
 {
     $stdout ??= STDOUT;
     $stderr ??= STDERR;
+    $stdin ??= STDIN;
 
     try {
         $options = parseArguments($argv);
@@ -45,18 +47,34 @@ function runCoverageGuard(array $argv, $stdout = null, $stderr = null): int
         return 1;
     }
 
-    if (!is_file($reportPath)) {
-        fwrite($stderr, sprintf("Coverage report '%s' does not exist." . PHP_EOL, $reportPath));
+    if ($reportPath === '-') {
+        $reportContents = stream_get_contents($stdin);
 
-        return 1;
-    }
+        if ($reportContents === false) {
+            fwrite($stderr, 'Unable to read coverage report from STDIN.' . PHP_EOL);
 
-    $reportContents = file_get_contents($reportPath);
+            return 1;
+        }
 
-    if ($reportContents === false) {
-        fwrite($stderr, sprintf("Unable to read coverage report '%s'." . PHP_EOL, $reportPath));
+        if ($reportContents === '') {
+            fwrite($stderr, 'Coverage report from STDIN is empty.' . PHP_EOL);
 
-        return 1;
+            return 1;
+        }
+    } else {
+        if (!is_file($reportPath)) {
+            fwrite($stderr, sprintf("Coverage report '%s' does not exist." . PHP_EOL, $reportPath));
+
+            return 1;
+        }
+
+        $reportContents = file_get_contents($reportPath);
+
+        if ($reportContents === false) {
+            fwrite($stderr, sprintf("Unable to read coverage report '%s'." . PHP_EOL, $reportPath));
+
+            return 1;
+        }
     }
 
     try {

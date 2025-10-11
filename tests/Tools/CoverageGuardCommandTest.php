@@ -143,6 +143,54 @@ TXT);
         );
     }
 
+    public function testAcceptsDashToReadReportFromStdIn(): void
+    {
+        $stdin = fopen('php://memory', 'w+');
+
+        fwrite($stdin, <<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 88.00% (88/100)
+  Branches: 81.00% (81/100)
+TXT);
+
+        rewind($stdin);
+
+        $stdout = fopen('php://memory', 'w+');
+        $stderr = fopen('php://memory', 'w+');
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            '-',
+            '--min-lines=80',
+            '--min-branches=75',
+        ], $stdout, $stderr, $stdin);
+
+        self::assertSame(0, $exitCode);
+        self::assertSame('', $this->getStreamContents($stderr));
+    }
+
+    public function testFailsWhenStdInReportIsEmpty(): void
+    {
+        $stdin = fopen('php://memory', 'w+');
+
+        $stdout = fopen('php://memory', 'w+');
+        $stderr = fopen('php://memory', 'w+');
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            '-',
+            '--min-lines=80',
+            '--min-branches=75',
+        ], $stdout, $stderr, $stdin);
+
+        self::assertSame(1, $exitCode);
+        self::assertStringContainsString(
+            'Coverage report from STDIN is empty.',
+            $this->getStreamContents($stderr),
+        );
+    }
+
     /**
      * @param resource $stream
      */
