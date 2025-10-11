@@ -17,6 +17,7 @@
     <coverage>
         <report>
             <text outputFile="php://stdout" showUncoveredFiles="false" showOnlySummary="true" />
+            <text outputFile="var/phpunit/coverage.txt" showUncoveredFiles="false" showOnlySummary="true" />
         </report>
     </coverage>
 

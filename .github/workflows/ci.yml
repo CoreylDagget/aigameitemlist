@@ -41,7 +41,8 @@ jobs:
 
       - name: Run PHPUnit with coverage thresholds
         run: |
-          composer test -- --coverage-text
+          composer test
+          composer coverage-check
 
       - name: Composer audit
         run: composer audit --no-interaction
