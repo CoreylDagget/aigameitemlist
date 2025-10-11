@@ -88,7 +88,10 @@ TXT);
         ], $stdout, $stderr);
 
         self::assertSame(1, $exitCode);
-        self::assertStringContainsString('Line coverage 60.00% is below required minimum of 80.00%.', $this->getStreamContents($stderr));
+        self::assertStringContainsString(
+            'Line coverage 60.00% is below required minimum of 80.00%.',
+            $this->getStreamContents($stderr),
+        );
     }
 
     /**
