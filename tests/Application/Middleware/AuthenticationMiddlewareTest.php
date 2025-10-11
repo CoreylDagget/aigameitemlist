@@ -12,6 +12,8 @@ use GameItemsList\Application\Security\JwtTokenService;
 use GameItemsList\Domain\Account\Account;
 use GameItemsList\Domain\Account\AccountRepositoryInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Response;
@@ -181,14 +183,14 @@ final class AuthenticationMiddlewareTest extends TestCase
 
         $capturedRequest = null;
         $handler = new class ($capturedRequest) implements RequestHandlerInterface {
-            public ?\Psr\Http\Message\ServerRequestInterface $captured = null;
+            public ?ServerRequestInterface $captured = null;
 
-            public function __construct(& $captured)
+            public function __construct(&$captured)
             {
                 $this->captured = &$captured;
             }
 
-            public function handle(\Psr\Http\Message\ServerRequestInterface $request): \Psr\Http\Message\ResponseInterface
+            public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 $this->captured = $request;
 
