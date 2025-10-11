@@ -24,6 +24,7 @@ use GameItemsList\Application\Action\Tags\CreateTagAction;
 use GameItemsList\Application\Action\Tags\ListTagsAction;
 use GameItemsList\Application\Cache\CacheInterface;
 use GameItemsList\Application\Http\JsonResponder;
+use GameItemsList\Application\Middleware\AdminAuthorizationMiddleware;
 use GameItemsList\Application\Middleware\AuthenticationMiddleware;
 use GameItemsList\Application\Security\JwtTokenService;
 use GameItemsList\Application\Service\Auth\AuthenticateAccountService;
@@ -148,6 +149,7 @@ return [
     ItemEntryService::class => autowire(),
 
     AuthenticationMiddleware::class => autowire(),
+    AdminAuthorizationMiddleware::class => autowire(),
 
     HealthCheckAction::class => static fn(): HealthCheckAction => new HealthCheckAction(),
     OpenApiAction::class => static fn(): OpenApiAction => new OpenApiAction(dirname(__DIR__) . '/openapi.yaml'),

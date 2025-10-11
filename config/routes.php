@@ -22,6 +22,7 @@ use GameItemsList\Application\Action\OpenApiAction;
 use GameItemsList\Application\Action\SwaggerUiAction;
 use GameItemsList\Application\Action\Tags\CreateTagAction;
 use GameItemsList\Application\Action\Tags\ListTagsAction;
+use GameItemsList\Application\Middleware\AdminAuthorizationMiddleware;
 use GameItemsList\Application\Middleware\AuthenticationMiddleware;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
@@ -53,5 +54,6 @@ return static function (App $app): void {
         $group->get('/changes', ListChangesAction::class);
         $group->post('/changes/{changeId}/approve', ApproveChangeAction::class);
         $group->post('/changes/{changeId}/reject', RejectChangeAction::class);
-    })->add(AuthenticationMiddleware::class);
+    })->add(AdminAuthorizationMiddleware::class)
+        ->add(AuthenticationMiddleware::class);
 };

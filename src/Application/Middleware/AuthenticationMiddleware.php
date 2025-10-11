@@ -54,6 +54,11 @@ final class AuthenticationMiddleware implements MiddlewareInterface
             return $this->responder->problem(401, 'Unauthorized', 'Account not found.');
         }
 
-        return $handler->handle($request->withAttribute('account_id', $account->id()));
+        return $handler->handle(
+            $request
+                ->withAttribute('account_id', $account->id())
+                ->withAttribute('account', $account)
+                ->withAttribute('is_admin', $account->isAdmin())
+        );
     }
 }
