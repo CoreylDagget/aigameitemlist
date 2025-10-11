@@ -10,6 +10,7 @@ final class Account
         private readonly string $id,
         private readonly string $email,
         private readonly string $passwordHash,
+        private readonly bool $isAdmin,
         private readonly \DateTimeImmutable $createdAt,
     ) {
     }
@@ -34,6 +35,11 @@ final class Account
         return $this->createdAt;
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->isAdmin;
+    }
+
     /**
      * @param array<string, mixed> $row
      */
@@ -43,6 +49,7 @@ final class Account
             $row['id'],
             $row['email'],
             $row['password_hash'],
+            (bool) ($row['is_admin'] ?? false),
             new \DateTimeImmutable($row['created_at']),
         );
     }

@@ -167,6 +167,7 @@ final class AuthenticationMiddlewareTest extends TestCase
                 'account-123',
                 'user@example.com',
                 'hash',
+                true,
                 new DateTimeImmutable('2024-01-01T00:00:00Z'),
             ));
 
@@ -203,5 +204,9 @@ final class AuthenticationMiddlewareTest extends TestCase
         self::assertSame(204, $response->getStatusCode());
         self::assertInstanceOf(\Psr\Http\Message\ServerRequestInterface::class, $handler->captured);
         self::assertSame('account-123', $handler->captured->getAttribute('account_id'));
+        $capturedAccount = $handler->captured->getAttribute('account');
+        self::assertInstanceOf(Account::class, $capturedAccount);
+        self::assertTrue($capturedAccount->isAdmin());
+        self::assertTrue($handler->captured->getAttribute('is_admin'));
     }
 }

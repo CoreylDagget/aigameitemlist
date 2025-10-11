@@ -40,6 +40,7 @@ final class JwtTokenServiceTest extends TestCase
             'account-123',
             'user@example.com',
             'hash',
+            false,
             new DateTimeImmutable('2024-01-01T00:00:00Z'),
         );
 

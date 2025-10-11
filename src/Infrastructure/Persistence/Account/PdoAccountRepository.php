@@ -49,12 +49,13 @@ final class PdoAccountRepository implements AccountRepositoryInterface
 
         try {
             $statement = $this->pdo->prepare(
-                'INSERT INTO accounts (id, email, password_hash) VALUES (:id, :email, :password_hash)'
+                'INSERT INTO accounts (id, email, password_hash, is_admin) VALUES (:id, :email, :password_hash, :is_admin)'
             );
             $statement->execute([
                 'id' => $id,
                 'email' => strtolower($email),
                 'password_hash' => $passwordHash,
+                'is_admin' => false,
             ]);
         } catch (PDOException $exception) {
             throw new RuntimeException('Failed to create account', 0, $exception);
