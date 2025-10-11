@@ -7,6 +7,7 @@ namespace GameItemsList\Infrastructure\Persistence\Lists;
 use GameItemsList\Domain\Lists\ItemDefinition;
 use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\Tag;
+use GameItemsList\Infrastructure\Persistence\UuidGenerator;
 use InvalidArgumentException;
 use PDO;
 use PDOException;
@@ -121,13 +122,15 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
         string $storageType,
         array $tagIds
     ): ItemDefinition {
+        $itemId = UuidGenerator::v4();
+
         try {
             $statement = $this->pdo->prepare(
-                'INSERT INTO item_definitions (list_id, name, description, image_url, storage_type) '
-                . 'VALUES (:list_id, :name, :description, :image_url, :storage_type) '
-                . 'RETURNING *'
+                'INSERT INTO item_definitions (id, list_id, name, description, image_url, storage_type) '
+                . 'VALUES (:id, :list_id, :name, :description, :image_url, :storage_type)'
             );
             $statement->execute([
+                'id' => $itemId,
                 'list_id' => $listId,
                 'name' => $name,
                 'description' => $description,
@@ -137,14 +140,6 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
         } catch (PDOException $exception) {
             throw new RuntimeException('Failed to create item definition', 0, $exception);
         }
-
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
-
-        if ($row === false) {
-            throw new RuntimeException('Failed to fetch created item definition');
-        }
-
-        $itemId = $row['id'];
 
         $this->syncTags($itemId, $tagIds);
 
@@ -182,7 +177,7 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
 
         if ($fields !== []) {
             $sql = sprintf(
-                'UPDATE item_definitions SET %s WHERE id = :item_id AND list_id = :list_id RETURNING *',
+                'UPDATE item_definitions SET %s WHERE id = :item_id AND list_id = :list_id',
                 implode(', ', $fields)
             );
 
@@ -191,12 +186,6 @@ final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInter
                 $statement->execute($parameters);
             } catch (PDOException $exception) {
                 throw new RuntimeException('Failed to update item definition', 0, $exception);
-            }
-
-            $row = $statement->fetch(PDO::FETCH_ASSOC);
-
-            if ($row === false) {
-                throw new RuntimeException('Failed to fetch updated item definition');
             }
         }
 

@@ -60,16 +60,19 @@ use function DI\autowire;
 
 return [
     PDO::class => static function (): PDO {
-        $driver = getenv('DB_CONNECTION') ?: 'pgsql';
+        $driver = strtolower(getenv('DB_CONNECTION') ?: 'mysql');
         $host = getenv('DB_HOST') ?: 'db';
-        $port = (int) (getenv('DB_PORT') ?: ($driver === 'pgsql' ? 5432 : 3306));
+        $port = (int) (getenv('DB_PORT') ?: match ($driver) {
+            'pgsql', 'postgres', 'postgresql' => 5432,
+            default => 3306,
+        });
         $database = getenv('DB_DATABASE') ?: 'gameitemslist';
         $username = getenv('DB_USERNAME') ?: 'gameitemslist';
         $password = getenv('DB_PASSWORD') ?: 'secret';
 
         $dsn = match ($driver) {
-            'mysql' => sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $host, $port, $database),
-            default => sprintf('pgsql:host=%s;port=%d;dbname=%s', $host, $port, $database),
+            'pgsql', 'postgres', 'postgresql' => sprintf('pgsql:host=%s;port=%d;dbname=%s', $host, $port, $database),
+            default => sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $host, $port, $database),
         };
 
         $pdo = new PDO($dsn, $username, $password, [

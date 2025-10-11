@@ -7,7 +7,6 @@ ARG GROUP_ID=1000
 RUN apk add --no-cache \
         git \
         curl \
-        libpq \
         libzip \
         zip \
         unzip \
@@ -15,10 +14,11 @@ RUN apk add --no-cache \
         libxml2-dev \
         icu-dev \
         libpng-dev \
-        libjpeg-turbo-dev
+        libjpeg-turbo-dev \
+        mariadb-connector-c-dev
 
 RUN docker-php-ext-configure intl \
-    && docker-php-ext-install -j"$(nproc)" intl pdo pdo_pgsql pdo_mysql opcache
+    && docker-php-ext-install -j"$(nproc)" intl pdo pdo_mysql opcache
 
 RUN pecl install xdebug \
     && docker-php-ext-enable xdebug

@@ -37,17 +37,19 @@ services:
         condition: service_started
 
   db:
-    image: postgres:16-alpine
-    container_name: gil-postgres
+    image: mariadb:11.4
+    container_name: gil-mariadb
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-gameitemslist}
-      POSTGRES_USER: ${DB_USERNAME:-gameitemslist}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+      MARIADB_DATABASE: ${DB_DATABASE:-gameitemslist}
+      MARIADB_USER: ${DB_USERNAME:-gameitemslist}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-secret}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./docker/postgres/initdb.d:/docker-entrypoint-initdb.d:ro
+      - db_data:/var/lib/mysql
+      - ./docker/mariadb/initdb.d:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$${MARIADB_ROOT_PASSWORD}\""]
       interval: 5s
       timeout: 5s
       retries: 20

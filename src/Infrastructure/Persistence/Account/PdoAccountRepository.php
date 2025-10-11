@@ -6,6 +6,7 @@ namespace GameItemsList\Infrastructure\Persistence\Account;
 
 use GameItemsList\Domain\Account\Account;
 use GameItemsList\Domain\Account\AccountRepositoryInterface;
+use GameItemsList\Infrastructure\Persistence\UuidGenerator;
 use PDO;
 use PDOException;
 use RuntimeException;
@@ -44,11 +45,14 @@ final class PdoAccountRepository implements AccountRepositoryInterface
 
     public function create(string $email, string $passwordHash): Account
     {
+        $id = UuidGenerator::v4();
+
         try {
             $statement = $this->pdo->prepare(
-                'INSERT INTO accounts (email, password_hash) VALUES (:email, :password_hash) RETURNING *'
+                'INSERT INTO accounts (id, email, password_hash) VALUES (:id, :email, :password_hash)'
             );
             $statement->execute([
+                'id' => $id,
                 'email' => strtolower($email),
                 'password_hash' => $passwordHash,
             ]);
@@ -56,12 +60,12 @@ final class PdoAccountRepository implements AccountRepositoryInterface
             throw new RuntimeException('Failed to create account', 0, $exception);
         }
 
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        $account = $this->findById($id);
 
-        if ($row === false) {
+        if ($account === null) {
             throw new RuntimeException('Failed to fetch created account');
         }
 
-        return Account::fromDatabaseRow($row);
+        return $account;
     }
 }
