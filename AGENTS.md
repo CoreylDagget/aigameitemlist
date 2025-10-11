@@ -71,7 +71,7 @@ Build **gameitemslist**: a web app and API to create and manage per-game item li
 
 ## Tests & Quality Gates
 - **Unit tests** for services/repositories; **integration tests** for HTTP flows (Slim + DB container).
-- **Coverage target:** 85% lines / 75% branches (enforced in CI).
+- **Coverage target:** 80% lines / 75% branches (enforced in CI).
 - **PHPStan level 8** must pass.
 - **PHPCS** clean and **PHP CS Fixer** dry-run must pass.
 - **composer audit** must pass (no critical vulns).

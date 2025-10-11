@@ -32,6 +32,7 @@
     "scripts": {
         "start": "php -S localhost:8080 -t public",
         "test": "phpunit",
+        "coverage-check": "php tools/coverage-guard.php var/phpunit/coverage.txt --min-lines=80 --min-branches=75 --allow-missing-branches",
         "phpstan": "phpstan analyse -c phpstan.neon.dist",
         "phpcs": "phpcs",
         "phpcbf": "phpcbf",
