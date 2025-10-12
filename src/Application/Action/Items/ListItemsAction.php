@@ -56,9 +56,12 @@ final class ListItemsAction
             }
         }
 
-        $search = isset($query['search']) && is_string($query['search'])
-            ? trim($query['search'])
-            : null;
+        $search = null;
+
+        if (isset($query['search']) && is_string($query['search'])) {
+            $trimmedSearch = trim($query['search']);
+            $search = $trimmedSearch === '' ? null : $trimmedSearch;
+        }
 
         $accountId = (string) $request->getAttribute('account_id');
 
