@@ -94,6 +94,25 @@ final class ItemDefinitionServiceTest extends TestCase
         self::assertSame($expected, $items);
     }
 
+    public function testListItemsNormalizesBlankSearchString(): void
+    {
+        $this->listService
+            ->expects(self::once())
+            ->method('requireListOwnedByAccount')
+            ->with('account-7', 'list-12', 'You are not allowed to view this list.')
+            ->willReturn($this->createGameList('list-12', 'account-7'));
+
+        $this->itemDefinitions
+            ->expects(self::once())
+            ->method('findByList')
+            ->with('list-12', null, null, null, null)
+            ->willReturn([]);
+
+        $items = $this->service->listItems('account-7', 'list-12', search: '   ');
+
+        self::assertSame([], $items);
+    }
+
     public function testProposeCreateItemNormalizesInputAndCreatesListChange(): void
     {
         $this->listService

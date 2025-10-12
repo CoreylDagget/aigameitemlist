@@ -42,7 +42,17 @@ final class ItemDefinitionService
 
         $accountFilter = $owned !== null ? $accountId : null;
 
-        return $this->items->findByList($listId, $accountFilter, $tagId, $owned, $search);
+        $normalizedSearch = $search;
+
+        if ($normalizedSearch !== null) {
+            $normalizedSearch = trim($normalizedSearch);
+
+            if ($normalizedSearch === '') {
+                $normalizedSearch = null;
+            }
+        }
+
+        return $this->items->findByList($listId, $accountFilter, $tagId, $owned, $normalizedSearch);
     }
 
     /**
