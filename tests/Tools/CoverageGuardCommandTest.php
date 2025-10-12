@@ -6,21 +6,18 @@ namespace GameItemsList\Tests\Tools;
 
 use PHPUnit\Framework\TestCase;
 
+require_once dirname(__DIR__, 2) . '/tools/coverage-guard.php';
+
 use function runCoverageGuard;
 
 use const COVERAGE_GUARD_USAGE;
 
 final class CoverageGuardCommandTest extends TestCase
 {
-    public static function setUpBeforeClass(): void
-    {
-        require_once dirname(__DIR__) . '/../tools/coverage-guard.php';
-    }
-
     public function testDisplaysUsageWhenHelpRequested(): void
     {
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard(['coverage-guard.php', '--help'], $stdout, $stderr);
 
@@ -38,8 +35,8 @@ Code Coverage Report:
   Branches: 85.00% (85/100)
 TXT);
 
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard([
             'coverage-guard.php',
@@ -54,8 +51,8 @@ TXT);
 
     public function testFailsWhenNoArgumentsProvided(): void
     {
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard(['coverage-guard.php'], $stdout, $stderr);
 
@@ -65,8 +62,8 @@ TXT);
 
     public function testFailsWhenReportIsMissing(): void
     {
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard([
             'coverage-guard.php',
@@ -88,8 +85,8 @@ Code Coverage Report:
   Branches: 50.00% (50/100)
 TXT);
 
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard([
             'coverage-guard.php',
@@ -114,8 +111,8 @@ Code Coverage Report:
   Branches: 81.00% (81/100)
 TXT);
 
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard([
             'coverage-guard.php',
@@ -135,8 +132,8 @@ Code Coverage Report:
   Lines: 84.00% (84/100)
 TXT);
 
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard([
             'coverage-guard.php',
@@ -159,8 +156,8 @@ Code Coverage Report:
   Branches: 80.00% (80/100)
 TXT);
 
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard([
             'coverage-guard.php',
@@ -185,8 +182,8 @@ Code Coverage Report:
   Branches: 82.00% (82/100)
 TXT);
 
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard([
             'coverage-guard.php',
@@ -205,7 +202,7 @@ TXT);
 
     public function testAcceptsDashToReadReportFromStdIn(): void
     {
-        $stdin = fopen('php://memory', 'w+');
+        $stdin = $this->openMemoryStream();
 
         fwrite($stdin, <<<'TXT'
 Code Coverage Report:
@@ -216,8 +213,8 @@ TXT);
 
         rewind($stdin);
 
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard([
             'coverage-guard.php',
@@ -232,10 +229,10 @@ TXT);
 
     public function testFailsWhenStdInReportIsEmpty(): void
     {
-        $stdin = fopen('php://memory', 'w+');
+        $stdin = $this->openMemoryStream();
 
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard([
             'coverage-guard.php',
@@ -266,8 +263,8 @@ Code Coverage Report:
   Branches: 83.00% (83/100)
 TXT);
 
-        $stdout = fopen('php://memory', 'w+');
-        $stderr = fopen('php://memory', 'w+');
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
 
         $exitCode = runCoverageGuard([
             'coverage-guard.php',
@@ -282,6 +279,20 @@ TXT);
             'Multiple coverage report paths provided. Provide only one.',
             $this->getStreamContents($stderr),
         );
+    }
+
+    /**
+     * @return resource
+     */
+    private function openMemoryStream()
+    {
+        $stream = fopen('php://memory', 'w+b');
+
+        if ($stream === false) {
+            self::fail('Unable to open memory stream.');
+        }
+
+        return $stream;
     }
 
     /**

@@ -25,7 +25,13 @@ final class FakeItemDefinitionRepository implements ItemDefinitionRepositoryInte
      */
     public array $createdItems = [];
 
-    /** @var array<int, array{itemId: string, listId: string, changes: array}> */
+    /**
+     * @var array<int, array{
+     *     itemId: string,
+     *     listId: string,
+     *     changes: array<string, mixed>,
+     * }>
+     */
     public array $updatedItems = [];
 
     public function findByList(

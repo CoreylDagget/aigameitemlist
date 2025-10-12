@@ -15,7 +15,12 @@ final class FakeListRepository implements ListRepositoryInterface
 {
     public ?GameList $list = null;
 
-    /** @var array<int, array{listId: string, changes: array}> */
+    /**
+     * @var array<int, array{
+     *     listId: string,
+     *     changes: array<string, mixed>,
+     * }>
+     */
     public array $metadataUpdates = [];
 
     public function findByOwnerAccount(string $accountId): array
@@ -33,6 +38,10 @@ final class FakeListRepository implements ListRepositoryInterface
         return $this->list;
     }
 
+    /**
+     * @param string[] $listIds
+     * @return GameList[]
+     */
     public function findByIds(string $accountId, array $listIds): array
     {
         throw new RuntimeException('findByIds not implemented in fake.');
