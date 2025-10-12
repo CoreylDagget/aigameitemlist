@@ -9,12 +9,11 @@ use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\Tag;
 use GameItemsList\Infrastructure\Persistence\UuidGenerator;
 use InvalidArgumentException;
-
-use function mb_strtolower;
-
 use PDO;
 use PDOException;
 use RuntimeException;
+
+use function mb_strtolower;
 
 final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInterface
 {

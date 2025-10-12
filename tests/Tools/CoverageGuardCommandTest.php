@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace GameItemsList\Tests\Tools;
 
-use const COVERAGE_GUARD_USAGE;
 use PHPUnit\Framework\TestCase;
 
+use const COVERAGE_GUARD_USAGE;
 use function runCoverageGuard;
 
 final class CoverageGuardCommandTest extends TestCase
