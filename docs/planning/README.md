@@ -72,8 +72,8 @@ Owners should track answers in new ADRs or inline updates here.
 |------|---------|--------|---------|
 | Tests | `composer test` | 🚧 In Arbeit | PHPUnit-Konfiguration inkl. Coverage-Grenzen hinterlegt; CI führt Lauf mit `--coverage-text` aus (lokal aktuell wegen fehlender Dependencies blockiert). |
 | PHPStan | `composer phpstan` | ✅ Konfiguriert | CI-Workflow reaktiviert den Lauf; lokal weiterhin ausführbar, sobald Dependencies installiert sind. |
-| PHPCS | `composer phpcs` | ✅ Konfiguriert | PSR-12 Konfiguration aktiv; Fixes via `composer fix`. |
-| PHP-CS-Fixer (Dry Run) | `vendor/bin/php-cs-fixer fix --dry-run --diff` | ✅ Aktiv | Schritt im CI wieder aktiviert; lokale Ausführung benötigt installierte Composer-Dependencies. |
+| PHPCS | `composer phpcs` | ✅ Konfiguriert | PSR-12 Konfiguration aktiv; vorheriger Sniff zu Datei-Nebeneffekten in `CoverageGuardCommandTest` gelöst, indem das Helper-Skript nun im PHPUnit-Setup eingebunden wird. |
+| PHP-CS-Fixer (Dry Run) | `vendor/bin/php-cs-fixer fix --dry-run --diff` | ✅ Aktiv | Schritt im CI wieder aktiviert; dokumentiert, dass die frühere Side-Effect-Warnung ebenfalls hier sichtbar war und nach dem PHPUnit-Setup-Fix verschwand. |
 | Composer Audit | `composer audit` | 🚧 In Arbeit | Läuft in neuem CI-Workflow; lokale Ausführung folgt nach erfolgreicher Composer-Installation. |
 
 ## Change Log

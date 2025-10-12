@@ -78,6 +78,8 @@ make down
 - **Security Audit**: `composer audit` sobald Abhängigkeiten vor dem Release eingefroren sind.
 - **Checkliste**: Vor jedem Merge alle oben genannten Kommandos ausführen und Ergebnisse im PR festhalten; Abweichungen (z. B. fehlende Tests) müssen als Follow-up dokumentiert werden.
 
+> Hinweis: Eine frühere PHPCS-Warnung („file should declare new symbols and cause no side effects“) im `CoverageGuardCommandTest` entstand durch ein `require_once` auf Datei-Ebene. Seit das Coverage-Helper-Skript im `setUpBeforeClass()` geladen wird, sind PHPCS und der PHP CS Fixer wieder sauber.
+
 ## Health Endpoint
 `GET /health` liefert eine JSON-Antwort mit Service-Status, um Deployments und lokale Setups schnell prüfen zu können. Dieser Endpoint wird von Docker Compose beim lokalen Smoke-Test genutzt und dient später als Basis für Monitoring Checks.
 
