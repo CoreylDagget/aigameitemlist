@@ -10,5 +10,6 @@ parameters:
     reportUnmatchedIgnoredErrors: true
     scanFiles:
         - vendor/autoload.php
+        - tools/coverage-guard.php
     stubFiles:
         - stubs/phpunit-mock-object.stub.php
