@@ -6,14 +6,19 @@ namespace GameItemsList\Tests\Tools;
 
 use PHPUnit\Framework\TestCase;
 
-require_once dirname(__DIR__, 2) . '/tools/coverage-guard.php';
-
 use function runCoverageGuard;
 
 use const COVERAGE_GUARD_USAGE;
 
 final class CoverageGuardCommandTest extends TestCase
 {
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+
+        require_once dirname(__DIR__, 2) . '/tools/coverage-guard.php';
+    }
+
     public function testDisplaysUsageWhenHelpRequested(): void
     {
         $stdout = $this->openMemoryStream();
