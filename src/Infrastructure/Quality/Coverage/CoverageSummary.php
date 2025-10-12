@@ -53,10 +53,10 @@ final class CoverageSummary
         };
 
         foreach ($labels as $label) {
-            $pattern = sprintf('/^\s*%s:?\s+(\d+(?:\.\d+)?)%%/mi', preg_quote($label, '/'));
+            $pattern = sprintf('/^\s*%s:?\s+(\d+(?:[.,]\d+)?)\h*%%/mi', preg_quote($label, '/'));
 
             if (preg_match($pattern, $report, $matches) === 1) {
-                return (float) $matches[1];
+                return (float) str_replace(',', '.', $matches[1]);
             }
         }
 

@@ -54,6 +54,36 @@ TXT;
         self::assertSame(76.5, $summary->branchCoverage());
     }
 
+    public function testParsesValuesWithWhitespaceBeforePercentSign(): void
+    {
+        $report = <<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 91.25 % (73/80)
+  Branches: 83.50 % (167/200)
+TXT;
+
+        $summary = CoverageSummary::fromText($report);
+
+        self::assertSame(91.25, $summary->lineCoverage());
+        self::assertSame(83.5, $summary->branchCoverage());
+    }
+
+    public function testParsesValuesWithCommaDecimalSeparators(): void
+    {
+        $report = <<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 91,25 % (73/80)
+  Branches: 83,50 % (167/200)
+TXT;
+
+        $summary = CoverageSummary::fromText($report);
+
+        self::assertSame(91.25, $summary->lineCoverage());
+        self::assertSame(83.5, $summary->branchCoverage());
+    }
+
     public function testRejectsReportWithoutLineCoverage(): void
     {
         $report = <<<'TXT'
