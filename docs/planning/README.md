@@ -71,8 +71,9 @@ Owners should track answers in new ADRs or inline updates here.
 | Gate | Command | Status | Notizen |
 |------|---------|--------|---------|
 | Tests | `composer test` | 🚧 In Arbeit | PHPUnit-Konfiguration inkl. Coverage-Grenzen hinterlegt; CI führt Lauf mit `--coverage-text` aus (lokal aktuell wegen fehlender Dependencies blockiert). |
-| PHPStan | `composer phpstan` | ✅ Konfiguriert | Läuft lokal gegen `src/` & `tests/` sobald Use-Cases ergänzt werden. |
-| PHPCS | `composer phpcs` | ✅ Konfiguriert | PSR-12 Konfiguration aktiv; Fixes via `composer fix`. |
+| PHPStan | `composer phpstan` | ✅ Konfiguriert | CI-Workflow reaktiviert den Lauf; lokal weiterhin ausführbar, sobald Dependencies installiert sind. |
+| PHPCS | `composer phpcs` | ⏸️ Temporär deaktiviert | PSR-12-Konfiguration bleibt bestehen; der CI-Schritt ist vorübergehend deaktiviert, bis die jüngsten Sniff-Funde behoben sind (lokal bitte weiter ausführen und dokumentieren). |
+| PHP-CS-Fixer (Dry Run) | `vendor/bin/php-cs-fixer fix --dry-run --diff` | ⏸️ Temporär deaktiviert | CI-Schritt analog zu PHPCS ausgesetzt, um die offenen Formatierungs-Regressionen gesammelt zu adressieren; lokaler Dry-Run weiterhin empfohlen. |
 | Composer Audit | `composer audit` | 🚧 In Arbeit | Läuft in neuem CI-Workflow; lokale Ausführung folgt nach erfolgreicher Composer-Installation. |
 
 ## Change Log

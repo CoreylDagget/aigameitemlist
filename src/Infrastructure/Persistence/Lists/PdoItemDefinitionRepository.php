@@ -12,7 +12,6 @@ use InvalidArgumentException;
 use PDO;
 use PDOException;
 use RuntimeException;
-
 use function mb_strtolower;
 
 final class PdoItemDefinitionRepository implements ItemDefinitionRepositoryInterface

@@ -186,7 +186,7 @@ final class AuthenticationMiddlewareTest extends TestCase
         $handler = new class ($capturedRequest) implements RequestHandlerInterface {
             public ?ServerRequestInterface $captured = null;
 
-            public function __construct(&$captured)
+            public function __construct(?ServerRequestInterface &$captured)
             {
                 $this->captured = &$captured;
             }
