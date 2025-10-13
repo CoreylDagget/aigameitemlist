@@ -120,10 +120,20 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
 function parseArguments(array $argv): array
 {
     $options = [];
+    $arguments = array_values(array_slice($argv, 1));
+    $argumentCount = count($arguments);
 
-    foreach (array_slice($argv, 1) as $argument) {
+    for ($index = 0; $index < $argumentCount; $index++) {
+        $argument = $arguments[$index];
+
         if ($argument === '--help' || $argument === '-h') {
             $options['help'] = true;
+
+            continue;
+        }
+
+        if ($argument === '--allow-missing-branches') {
+            $options['allow-missing-branches'] = true;
 
             continue;
         }
@@ -138,19 +148,36 @@ function parseArguments(array $argv): array
             continue;
         }
 
-        if ($argument === '--allow-missing-branches') {
-            $options['allow-missing-branches'] = true;
+        $option = substr($argument, 2);
 
-            continue;
+        if ($option === '') {
+            throw new \InvalidArgumentException('Invalid argument "--".');
         }
 
-        $parts = explode('=', substr($argument, 2), 2);
+        $value = null;
 
-        if (count($parts) !== 2 || $parts[1] === '') {
-            throw new \InvalidArgumentException(sprintf('Invalid argument format "%s".', $argument));
+        if (str_contains($option, '=')) {
+            [$key, $value] = explode('=', $option, 2);
+
+            if ($value === '') {
+                throw new \InvalidArgumentException(sprintf('Option "%s" requires a value.', $key));
+            }
+        } else {
+            $key = $option;
+
+            if ($index + 1 >= $argumentCount) {
+                throw new \InvalidArgumentException(sprintf('Option "%s" requires a value.', $key));
+            }
+
+            $nextArgument = $arguments[$index + 1];
+
+            if (str_starts_with($nextArgument, '--')) {
+                throw new \InvalidArgumentException(sprintf('Option "%s" requires a value.', $key));
+            }
+
+            $value = $nextArgument;
+            $index++;
         }
-
-        [$key, $value] = $parts;
 
         switch ($key) {
             case 'min-lines':

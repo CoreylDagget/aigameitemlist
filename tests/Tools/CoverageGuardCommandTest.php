@@ -54,6 +54,31 @@ TXT);
         self::assertSame('', $this->getStreamContents($stderr));
     }
 
+    public function testAcceptsSpaceSeparatedThresholdOptions(): void
+    {
+        $reportPath = $this->createReport(<<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 90.00% (90/100)
+  Branches: 85.00% (85/100)
+TXT);
+
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            $reportPath,
+            '--min-lines',
+            '80',
+            '--min-branches',
+            '75',
+        ], $stdout, $stderr);
+
+        self::assertSame(0, $exitCode);
+        self::assertSame('', $this->getStreamContents($stderr));
+    }
+
     public function testFailsWhenNoArgumentsProvided(): void
     {
         $stdout = $this->openMemoryStream();
@@ -178,6 +203,34 @@ TXT);
         );
     }
 
+    public function testRejectsNonNumericValuesInSpaceSeparatedSyntax(): void
+    {
+        $reportPath = $this->createReport(<<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 90.00% (90/100)
+  Branches: 80.00% (80/100)
+TXT);
+
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            $reportPath,
+            '--min-lines',
+            'eighty',
+            '--min-branches',
+            '75',
+        ], $stdout, $stderr);
+
+        self::assertSame(1, $exitCode);
+        self::assertStringContainsString(
+            'Option "min-lines" requires a numeric value.',
+            $this->getStreamContents($stderr),
+        );
+    }
+
     public function testFailsWhenUnknownOptionProvided(): void
     {
         $reportPath = $this->createReport(<<<'TXT'
@@ -201,6 +254,58 @@ TXT);
         self::assertSame(1, $exitCode);
         self::assertStringContainsString(
             'Unknown option "unexpected".',
+            $this->getStreamContents($stderr),
+        );
+    }
+
+    public function testFailsWhenSpaceSeparatedOptionMissingValue(): void
+    {
+        $reportPath = $this->createReport(<<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 90.00% (90/100)
+  Branches: 82.00% (82/100)
+TXT);
+
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            $reportPath,
+            '--min-lines',
+            '--min-branches=75',
+        ], $stdout, $stderr);
+
+        self::assertSame(1, $exitCode);
+        self::assertStringContainsString(
+            'Option "min-lines" requires a value.',
+            $this->getStreamContents($stderr),
+        );
+    }
+
+    public function testFailsWhenEqualsSyntaxOmitsValue(): void
+    {
+        $reportPath = $this->createReport(<<<'TXT'
+Code Coverage Report:
+ Summary:
+  Lines: 90.00% (90/100)
+  Branches: 82.00% (82/100)
+TXT);
+
+        $stdout = $this->openMemoryStream();
+        $stderr = $this->openMemoryStream();
+
+        $exitCode = runCoverageGuard([
+            'coverage-guard.php',
+            $reportPath,
+            '--min-lines=',
+            '--min-branches=75',
+        ], $stdout, $stderr);
+
+        self::assertSame(1, $exitCode);
+        self::assertStringContainsString(
+            'Option "min-lines" requires a value.',
             $this->getStreamContents($stderr),
         );
     }
