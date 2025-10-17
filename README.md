@@ -7,10 +7,13 @@ Accounts können Listen (pro Spiel) anlegen, Items und Kategorien verwalten (mit
 - **Accounts & Auth** – Registrierung & Login mit Argon2id gehashten Passwörtern, kurzlebigen Access Tokens und Refresh Tokens (14 Tage TTL, maximal 30 Tage Sliding Window) die bei jeder Verwendung rotiert werden. Tokens enthalten Account-ID & E-Mail als Claims für Downstream-Services; Refresh Tokens werden nur gehasht gespeichert und Reuse führt zur Session-Invalidierung inkl. Security-Alert.
 - **Listen-Verwaltung** – Accounts können pro Spiel beliebig viele Listen anlegen, Details abrufen, Metadaten-Änderungen als Pending Change einreichen und Listen veröffentlichen.
 - **Item-Definitionen** – Items unterstützen Namen, Beschreibung, Bild-URL sowie die Speichertypen **boolean**, **count** und **text**. Strukturänderungen erzeugen `ListChange`-Einträge.
+- **Spielvorlagen & Prefills** – `GET /v1/games` listet unterstützte Spiele; `GET /v1/games/{gameId}/item-templates` liefert kuratierte Item-Vorlagen, die über `POST /v1/lists/{id}/items` per `templateId` sofort übernommen werden können.
 - **Tags/Kategorien** – Tags je Liste inkl. optionaler HEX-Farbe. Neue Tags werden ebenfalls als Pending Change modelliert.
 - **Persönliche Einträge** – Accounts erfassen Besitz/Anzahl/Freitext über `/entries`, Werte werden je nach Item-Speichertyp validiert.
 - **Filter & Suche** – Item-Listen unterstützen Filter nach Tag, Besitzstatus und Textsuche (Name/Beschreibung).
 - **Admin-Review & Caching** – Pending Changes werden über `/v1/admin/changes` (inkl. `.../approve` & `.../reject`) geprüft und materialisiert. Der account-spezifische Listendetail-Cache für `/v1/lists/{id}` (bereitgestellt vom `CachedListDetailService`) wird nach Admin-Entscheidungen sowie Änderungen an persönlichen Einträgen automatisch invalidiert.
+- **Teilen & Link-Verwaltung** – `GET/POST/DELETE /v1/lists/{id}/share` erzeugt, rotiert oder widerruft einen geteilten Link; `GET /v1/shared/{token}` liefert die veröffentlichte Liste read-only. Tokens werden in `list_share_tokens` persistiert.
+- **Web UI (MVP)** – Unter [`/app/index.html`](public/app/index.html) steht ein Single-Page-Frontend bereit (Vanilla JS + CSS) inklusive Registrierung/Login, Listenübersicht, Template-Import, Item-Vorschläge und Sharing-Panel mit Copy-to-Clipboard.
 
 ## Tech
 - PHP 8.3, Slim 4, Composer
@@ -57,6 +60,10 @@ Zum Herunterfahren aller Dienste:
 make down
 ```
 
+### UI aufrufen
+- Hauptanwendung: [http://localhost:8080/app/](http://localhost:8080/app/)
+- Geteilte Liste: `http://localhost:8080/app/index.html#shared=<token>` (Token stammt aus dem Share-Panel oder `GET /v1/lists/{id}/share`).
+
 ## Projekt-Dokumentation
 - **Planung & Backlog**: siehe [`docs/planning/README.md`](docs/planning/README.md)
   für Vision, Meilensteine, Status je Backlog-Item und Quality-Gate-Nachweise.
@@ -65,6 +72,7 @@ make down
   [`0002-planning-cadence.md`](docs/adr/0002-planning-cadence.md),
   [`0003-pending-change-workflow.md`](docs/adr/0003-pending-change-workflow.md),
   [`0004-quality-gates-tooling.md`](docs/adr/0004-quality-gates-tooling.md)).
+- **UI-Handbuch**: [`docs/ui/README.md`](docs/ui/README.md) dokumentiert Flows und Gestaltung des `/app` Frontends.
 
 ## API-Überblick
 - **OpenAPI**: `/openapi.yaml` definiert alle öffentlichen Endpunkte (Health, Auth, Lists, Items, Tags, Entries) inklusive Filter-Query-Parameter und Fehlerobjekten.

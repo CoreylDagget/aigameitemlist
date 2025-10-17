@@ -32,6 +32,24 @@ final class CreateItemAction
         }
 
         $data = (array) $request->getParsedBody();
+        $templateId = null;
+
+        if (array_key_exists('templateId', $data)) {
+            $templateValue = $data['templateId'];
+
+            if ($templateValue !== null && !is_string($templateValue)) {
+                return $this->responder->problem(400, 'Invalid request', 'templateId must be a string.');
+            }
+
+            if (is_string($templateValue)) {
+                $templateValue = trim($templateValue);
+
+                if ($templateValue !== '') {
+                    $templateId = $templateValue;
+                }
+            }
+        }
+
         $name = isset($data['name']) ? trim((string) $data['name']) : '';
         $storageType = isset($data['storageType']) ? (string) $data['storageType'] : '';
         $errors = [];
@@ -62,11 +80,11 @@ final class CreateItemAction
 
         $tagIdsRaw = $data['tagIds'] ?? [];
 
-        if ($name === '') {
+        if ($templateId === null && $name === '') {
             $errors['name'] = 'name is required.';
         }
 
-        if ($storageType === '') {
+        if ($templateId === null && $storageType === '') {
             $errors['storageType'] = 'storageType is required.';
         }
 
@@ -99,15 +117,24 @@ final class CreateItemAction
         $accountId = (string) $request->getAttribute('account_id');
 
         try {
-            $change = $this->itemService->proposeCreateItem(
-                $accountId,
-                $listId,
-                $name,
-                $storageType,
-                $description,
-                $imageUrl,
-                $tagIds,
-            );
+            if ($templateId !== null) {
+                $change = $this->itemService->proposeCreateItemFromTemplate(
+                    $accountId,
+                    $listId,
+                    $templateId,
+                    $tagIds,
+                );
+            } else {
+                $change = $this->itemService->proposeCreateItem(
+                    $accountId,
+                    $listId,
+                    $name,
+                    $storageType,
+                    $description,
+                    $imageUrl,
+                    $tagIds,
+                );
+            }
         } catch (DomainException $exception) {
             return $this->responder->problem(403, 'Forbidden', $exception->getMessage());
         } catch (InvalidArgumentException $exception) {

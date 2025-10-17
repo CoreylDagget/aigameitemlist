@@ -23,6 +23,10 @@ tags:
     description: Tag management (pending admin approval)
   - name: entries
     description: Personal ownership data for items within a list
+  - name: games
+    description: Discover supported games and template items
+  - name: share
+    description: Generate and consume share links for published lists
   - name: admin
     description: Admin approval flow for pending list changes
 paths:
@@ -93,6 +97,46 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /v1/games:
+    get:
+      tags: [games]
+      summary: List supported games
+      operationId: listGames
+      security: []
+      responses:
+        '200':
+          description: Available games
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  games:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Game'
+  /v1/games/{gameId}/item-templates:
+    parameters:
+      - $ref: '#/components/parameters/GameId'
+    get:
+      tags: [games]
+      summary: List prefab item templates for a game
+      operationId: listGameItemTemplates
+      security: []
+      responses:
+        '200':
+          description: Templates available for the requested game
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  templates:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GameItemTemplate'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /v1/lists:
     get:
       tags: [lists]
@@ -405,6 +449,97 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /v1/lists/{listId}/share:
+    parameters:
+      - $ref: '#/components/parameters/ListId'
+    get:
+      tags: [share]
+      summary: Inspect the current share link for a list
+      operationId: getListShare
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current share status for the list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListShareStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [share]
+      summary: Create or rotate a share link for a list
+      operationId: shareList
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rotate:
+                  type: boolean
+                  description: When true, rotate the share token even if one already exists.
+      responses:
+        '201':
+          description: Share link created or returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListShareStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [share]
+      summary: Revoke the existing share link for a list
+      operationId: revokeListShare
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Share link revoked
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/shared/{token}:
+    parameters:
+      - $ref: '#/components/parameters/ShareToken'
+    get:
+      tags: [share]
+      summary: Resolve a shared list by token
+      operationId: getSharedList
+      security: []
+      responses:
+        '200':
+          description: Shared list detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          description: Share link no longer active
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /v1/admin/changes:
     get:
       tags: [admin]
@@ -588,6 +723,27 @@ components:
           format: uuid
         name:
           type: string
+    GameItemTemplate:
+      type: object
+      required: [id, gameId, name, storageType]
+      properties:
+        id:
+          type: string
+          format: uuid
+        gameId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+        storageType:
+          $ref: '#/components/schemas/ItemStorageType'
     ListSummary:
       type: object
       required: [id, ownerAccountId, game, name, isPublished, createdAt]
@@ -624,6 +780,24 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/ItemDefinition'
+    ListShareStatus:
+      type: object
+      required: [active]
+      properties:
+        active:
+          type: boolean
+        token:
+          type: string
+          description: Share token when the list is shared.
+        shareUrl:
+          type: string
+          format: uri
+          description: Absolute URL that can be used to view the list without authentication.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the share token was created.
+      description: Share status for a list. token/shareUrl/createdAt are present only when active is true.
     ListCreateRequest:
       type: object
       required: [gameId, name]
@@ -697,6 +871,10 @@ components:
           items:
             $ref: '#/components/schemas/Tag'
     ItemDefinitionCreateRequest:
+      oneOf:
+        - $ref: '#/components/schemas/ItemDefinitionCreateManualRequest'
+        - $ref: '#/components/schemas/ItemDefinitionCreateFromTemplateRequest'
+    ItemDefinitionCreateManualRequest:
       type: object
       required: [name, storageType]
       properties:
@@ -704,6 +882,7 @@ components:
           type: string
         description:
           type: string
+          nullable: true
         imageUrl:
           type: string
           format: uri
@@ -714,6 +893,21 @@ components:
           items:
             type: string
             format: uuid
+      description: Create a brand new item definition.
+    ItemDefinitionCreateFromTemplateRequest:
+      type: object
+      required: [templateId]
+      properties:
+        templateId:
+          type: string
+          format: uuid
+          description: Identifier of the template to import for the current list's game.
+        tagIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+      description: Import an item definition from a pre-defined game template.
     ItemDefinitionUpdateRequest:
       type: object
       properties:
@@ -842,6 +1036,21 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/ChangeId'
+    GameId:
+      name: gameId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ShareToken:
+      name: token
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 10
+      description: Share token generated for a published list.
     TagFilter:
       name: tag
       in: query

@@ -12,6 +12,19 @@ CREATE TABLE IF NOT EXISTS games (
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS game_item_templates (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    game_id CHAR(36) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    image_url TEXT NULL,
+    storage_type VARCHAR(20) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    CONSTRAINT game_item_templates_storage_type_check CHECK (storage_type IN ('boolean', 'count', 'text')),
+    CONSTRAINT game_item_templates_game_fk FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
+    CONSTRAINT game_item_templates_unique_name UNIQUE (game_id, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS lists (
     id CHAR(36) NOT NULL PRIMARY KEY,
     account_id CHAR(36) NOT NULL,
@@ -24,6 +37,17 @@ CREATE TABLE IF NOT EXISTS lists (
     CONSTRAINT lists_account_fk FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
     CONSTRAINT lists_game_fk FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS list_share_tokens (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    list_id CHAR(36) NOT NULL,
+    token CHAR(64) NOT NULL UNIQUE,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    revoked_at DATETIME(6) NULL,
+    CONSTRAINT list_share_tokens_list_fk FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX IF NOT EXISTS idx_list_share_tokens_list_id ON list_share_tokens (list_id);
 
 CREATE TABLE IF NOT EXISTS list_changes (
     id CHAR(36) NOT NULL PRIMARY KEY,
@@ -103,3 +127,15 @@ VALUES
     ('11111111-1111-1111-1111-111111111111', 'Elden Ring'),
     ('22222222-2222-2222-2222-222222222222', 'The Legend of Zelda: Tears of the Kingdom'),
     ('33333333-3333-3333-3333-333333333333', 'Final Fantasy XIV');
+
+INSERT IGNORE INTO game_item_templates (id, game_id, name, description, image_url, storage_type)
+VALUES
+    ('aaaaaaa1-aaaa-4aaa-aaaa-aaaaaaaaaaa1', '11111111-1111-1111-1111-111111111111', 'Smithing Stone [1]', 'Upgrade material for low-level weapons.', NULL, 'count'),
+    ('aaaaaaa2-aaaa-4aaa-aaaa-aaaaaaaaaaa2', '11111111-1111-1111-1111-111111111111', 'Golden Rune', 'Consumable that grants a burst of runes.', NULL, 'count'),
+    ('aaaaaaa3-aaaa-4aaa-aaaa-aaaaaaaaaaa3', '11111111-1111-1111-1111-111111111111', 'Sacred Tear', 'Improves the effectiveness of flasks.', NULL, 'count'),
+    ('bbbbbbb1-bbbb-4bbb-bbbb-bbbbbbbbbbb1', '22222222-2222-2222-2222-222222222222', 'Korok Seed', 'Hidden puzzle rewards used to expand inventory slots.', NULL, 'count'),
+    ('bbbbbbb2-bbbb-4bbb-bbbb-bbbbbbbbbbb2', '22222222-2222-2222-2222-222222222222', 'Zonaite Battery', 'Additional energy cell for Zonai devices.', NULL, 'count'),
+    ('bbbbbbb3-bbbb-4bbb-bbbb-bbbbbbbbbbb3', '22222222-2222-2222-2222-222222222222', 'Master Sword Durability', 'Track whether the Master Sword has been recovered.', NULL, 'boolean'),
+    ('ccccccc1-cccc-4ccc-cccc-ccccccccccc1', '33333333-3333-3333-3333-333333333333', 'Tomestone of Causality', 'Weekly-capped endgame currency.', NULL, 'count'),
+    ('ccccccc2-cccc-4ccc-cccc-ccccccccccc2', '33333333-3333-3333-3333-333333333333', 'Raid Weapon Token', 'Token exchanged for raid weapon coffers.', NULL, 'count'),
+    ('ccccccc3-cccc-4ccc-cccc-ccccccccccc3', '33333333-3333-3333-3333-333333333333', 'Housing Lottery Entry', 'Track submissions to the housing lottery.', NULL, 'text');
