@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>gameitemslist — Web App</title>
+    <link rel="stylesheet" href="/app/styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>gameitemslist</h1>
+      <p class="subtitle">Track, curate, and share per-game item lists.</p>
+    </header>
+
+    <main class="app-main">
+      <section class="card" id="auth-card">
+        <h2>Authenticate</h2>
+        <div class="auth-forms">
+          <form id="register-form" class="stack" autocomplete="off">
+            <h3>Register</h3>
+            <label>
+              Email
+              <input type="email" name="email" required />
+            </label>
+            <label>
+              Password
+              <input type="password" name="password" required minlength="8" />
+            </label>
+            <button type="submit">Register &amp; Sign In</button>
+          </form>
+          <form id="login-form" class="stack" autocomplete="off">
+            <h3>Login</h3>
+            <label>
+              Email
+              <input type="email" name="email" required />
+            </label>
+            <label>
+              Password
+              <input type="password" name="password" required />
+            </label>
+            <button type="submit">Sign In</button>
+          </form>
+        </div>
+        <p class="hint" id="auth-status">Not authenticated.</p>
+      </section>
+
+      <section class="card" id="games-card" hidden>
+        <h2>Create a List</h2>
+        <form id="create-list-form" class="stack">
+          <label>
+            Game
+            <select id="game-select" name="gameId" required></select>
+          </label>
+          <label>
+            List name
+            <input type="text" name="name" required minlength="1" />
+          </label>
+          <label>
+            Description
+            <textarea name="description" rows="2"></textarea>
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" name="isPublished" /> Publish immediately
+          </label>
+          <button type="submit">Create list</button>
+        </form>
+      </section>
+
+      <section class="card" id="lists-card" hidden>
+        <h2>Your Lists</h2>
+        <div class="lists-grid">
+          <aside>
+            <ul id="lists"></ul>
+          </aside>
+          <article id="list-detail" hidden>
+            <header>
+              <h3 id="list-title"></h3>
+              <p id="list-description" class="muted"></p>
+            </header>
+            <section class="share" id="share-panel">
+              <h4>Share</h4>
+              <p id="share-status">This list is private.</p>
+              <div class="share-actions">
+                <button id="share-create" type="button">Create share link</button>
+                <button id="share-rotate" type="button">Rotate link</button>
+                <button id="share-revoke" type="button">Revoke link</button>
+              </div>
+              <div class="share-link" id="share-link" hidden>
+                <label>
+                  Share URL
+                  <input type="text" readonly />
+                </label>
+                <button type="button" id="share-copy">Copy</button>
+              </div>
+            </section>
+            <section class="stack" id="item-creation">
+              <h4>Add Items</h4>
+              <form id="template-add-form" class="inline-form">
+                <label>
+                  From template
+                  <select id="template-select" name="templateId"></select>
+                </label>
+                <button type="submit">Add template</button>
+              </form>
+              <form id="manual-add-form" class="stack">
+                <label>
+                  Name
+                  <input type="text" name="name" required />
+                </label>
+                <label>
+                  Storage type
+                  <select name="storageType" required>
+                    <option value="">Select type…</option>
+                    <option value="boolean">Yes / No</option>
+                    <option value="count">Count</option>
+                    <option value="text">Text</option>
+                  </select>
+                </label>
+                <label>
+                  Description
+                  <textarea name="description" rows="2"></textarea>
+                </label>
+                <label>
+                  Image URL
+                  <input type="url" name="imageUrl" placeholder="https://" />
+                </label>
+                <button type="submit">Propose new item</button>
+              </form>
+            </section>
+            <section>
+              <h4>Items</h4>
+              <p class="muted" id="items-hint">No items yet.</p>
+              <ul id="items" class="items-list"></ul>
+            </section>
+          </article>
+        </div>
+      </section>
+
+      <section class="card" id="shared-view-card" hidden>
+        <h2>Shared List</h2>
+        <div id="shared-view"></div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>Need the API? Visit <a href="/docs">Swagger UI</a>.</p>
+    </footer>
+
+    <script type="module" src="/app/app.js"></script>
+  </body>
+</html>

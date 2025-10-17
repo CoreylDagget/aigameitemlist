@@ -7,6 +7,8 @@ use GameItemsList\Application\Action\Admin\ListChangesAction;
 use GameItemsList\Application\Action\Admin\RejectChangeAction;
 use GameItemsList\Application\Action\Auth\LoginAction;
 use GameItemsList\Application\Action\Auth\RegisterAction;
+use GameItemsList\Application\Action\Games\ListGameItemTemplatesAction;
+use GameItemsList\Application\Action\Games\ListGamesAction;
 use GameItemsList\Application\Action\HealthCheckAction;
 use GameItemsList\Application\Action\HomeAction;
 use GameItemsList\Application\Action\Entries\ListEntriesAction;
@@ -19,6 +21,10 @@ use GameItemsList\Application\Action\Lists\ListIndexAction;
 use GameItemsList\Application\Action\Lists\GetListAction;
 use GameItemsList\Application\Action\Lists\PublishListAction;
 use GameItemsList\Application\Action\Lists\UpdateListAction;
+use GameItemsList\Application\Action\Lists\Share\GetListShareAction;
+use GameItemsList\Application\Action\Lists\Share\GetSharedListAction;
+use GameItemsList\Application\Action\Lists\Share\RevokeListShareAction;
+use GameItemsList\Application\Action\Lists\Share\ShareListAction;
 use GameItemsList\Application\Action\OpenApiAction;
 use GameItemsList\Application\Action\SwaggerUiAction;
 use GameItemsList\Application\Action\Tags\CreateTagAction;
@@ -32,25 +38,32 @@ use GameItemsList\Application\Service\Auth\AuthenticateAccountService;
 use GameItemsList\Application\Service\Auth\RegisterAccountService;
 use GameItemsList\Application\Service\Admin\AdminListChangeService;
 use GameItemsList\Application\Service\Admin\AdminListChangeServiceInterface;
+use GameItemsList\Application\Service\Game\GameCatalogService;
 use GameItemsList\Application\Service\Lists\CachedListDetailService;
 use GameItemsList\Application\Service\Lists\ItemDefinitionService;
 use GameItemsList\Application\Service\Lists\ItemEntryService;
 use GameItemsList\Application\Service\Lists\ListDetailCacheInterface;
+use GameItemsList\Application\Service\Lists\ListDetailFormatter;
 use GameItemsList\Application\Service\Lists\ListService;
 use GameItemsList\Application\Service\Lists\ListServiceInterface;
+use GameItemsList\Application\Service\Lists\ListShareService;
 use GameItemsList\Application\Service\Lists\TagService;
 use GameItemsList\Domain\Account\AccountRepositoryInterface;
+use GameItemsList\Domain\Game\GameItemTemplateRepositoryInterface;
 use GameItemsList\Domain\Game\GameRepositoryInterface;
 use GameItemsList\Domain\Lists\ListChangeRepositoryInterface;
 use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\ItemEntryRepositoryInterface;
 use GameItemsList\Domain\Lists\ListRepositoryInterface;
+use GameItemsList\Domain\Lists\ListShareTokenRepositoryInterface;
 use GameItemsList\Domain\Lists\TagRepositoryInterface;
 use GameItemsList\Infrastructure\Cache\RedisCache;
 use GameItemsList\Infrastructure\Persistence\Account\PdoAccountRepository;
+use GameItemsList\Infrastructure\Persistence\Game\PdoGameItemTemplateRepository;
 use GameItemsList\Infrastructure\Persistence\Game\PdoGameRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoListChangeRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoListRepository;
+use GameItemsList\Infrastructure\Persistence\Lists\PdoListShareTokenRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoItemDefinitionRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoItemEntryRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoTagRepository;
@@ -123,8 +136,14 @@ return [
     GameRepositoryInterface::class => static fn(ContainerInterface $container): GameRepositoryInterface
         => new PdoGameRepository($container->get(PDO::class)),
 
+    GameItemTemplateRepositoryInterface::class => static fn(ContainerInterface $container): GameItemTemplateRepositoryInterface
+        => new PdoGameItemTemplateRepository($container->get(PDO::class)),
+
     ListRepositoryInterface::class => static fn(ContainerInterface $container): ListRepositoryInterface
         => new PdoListRepository($container->get(PDO::class)),
+
+    ListShareTokenRepositoryInterface::class => static fn(ContainerInterface $container): ListShareTokenRepositoryInterface
+        => new PdoListShareTokenRepository($container->get(PDO::class)),
 
     ListChangeRepositoryInterface::class => static fn(ContainerInterface $container): ListChangeRepositoryInterface
         => new PdoListChangeRepository($container->get(PDO::class)),
@@ -144,10 +163,13 @@ return [
     AdminListChangeServiceInterface::class => autowire(AdminListChangeService::class),
     ListService::class => autowire(),
     ListServiceInterface::class => autowire(ListService::class),
+    ListDetailFormatter::class => autowire(),
     ListDetailCacheInterface::class => autowire(CachedListDetailService::class),
     TagService::class => autowire(),
     ItemDefinitionService::class => autowire(),
     ItemEntryService::class => autowire(),
+    ListShareService::class => autowire(),
+    GameCatalogService::class => autowire(),
 
     AuthenticationMiddleware::class => autowire(),
     AdminAuthorizationMiddleware::class => autowire(),
@@ -163,6 +185,10 @@ return [
     GetListAction::class => autowire(),
     PublishListAction::class => autowire(),
     UpdateListAction::class => autowire(),
+    GetListShareAction::class => autowire(),
+    ShareListAction::class => autowire(),
+    RevokeListShareAction::class => autowire(),
+    GetSharedListAction::class => autowire(),
     ListTagsAction::class => autowire(),
     CreateTagAction::class => autowire(),
     ListItemsAction::class => autowire(),
@@ -173,4 +199,6 @@ return [
     ListChangesAction::class => autowire(),
     ApproveChangeAction::class => autowire(),
     RejectChangeAction::class => autowire(),
+    ListGamesAction::class => autowire(),
+    ListGameItemTemplatesAction::class => autowire(),
 ];

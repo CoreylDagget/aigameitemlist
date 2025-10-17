@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace GameItemsList\Application\Service\Lists;
 
 use GameItemsList\Application\Cache\CacheInterface;
-use GameItemsList\Domain\Lists\ItemDefinition;
 use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
-use GameItemsList\Domain\Lists\Tag;
 use GameItemsList\Domain\Lists\TagRepositoryInterface;
 use JsonException;
 use Throwable;
@@ -24,6 +22,7 @@ final class CachedListDetailService implements ListDetailCacheInterface
         private readonly TagRepositoryInterface $tags,
         private readonly ItemDefinitionRepositoryInterface $items,
         private readonly CacheInterface $cache,
+        private readonly ListDetailFormatter $formatter,
         private readonly int $ttlSeconds = self::DEFAULT_TTL,
         ?ListDetailCacheObserverInterface $observer = null,
     ) {
@@ -65,8 +64,8 @@ final class CachedListDetailService implements ListDetailCacheInterface
             $items = $this->items->findByList($listId);
 
             $payload = [
-                'tags' => $this->formatTags($tags),
-                'items' => $this->formatItems($items),
+                'tags' => $this->formatter->formatTags($tags),
+                'items' => $this->formatter->formatItems($items),
             ];
 
             if ($this->storeInCache($cacheKey, $payload)) {
@@ -108,53 +107,6 @@ final class CachedListDetailService implements ListDetailCacheInterface
         }
 
         $this->observer->recordInvalidate($accountId, $listId);
-    }
-
-    /**
-     * @param Tag[] $tags
-     * @return array<int, array{id: string, listId: string, name: string, color: ?string}>
-     */
-    private function formatTags(array $tags): array
-    {
-        return array_map(
-            static fn (Tag $tag): array => [
-                'id' => $tag->id(),
-                'listId' => $tag->listId(),
-                'name' => $tag->name(),
-                'color' => $tag->color(),
-            ],
-            $tags
-        );
-    }
-
-    /**
-     * @param ItemDefinition[] $items
-     * @return array<int, array{
-     *     id: string,
-     *     listId: string,
-     *     name: string,
-     *     description: ?string,
-     *     imageUrl: ?string,
-     *     storageType: string,
-     *     tags: array<int, array{id: string, listId: string, name: string, color: ?string}>
-     * }>
-     */
-    private function formatItems(array $items): array
-    {
-        return array_map(
-            function (ItemDefinition $item): array {
-                return [
-                    'id' => $item->id(),
-                    'listId' => $item->listId(),
-                    'name' => $item->name(),
-                    'description' => $item->description(),
-                    'imageUrl' => $item->imageUrl(),
-                    'storageType' => $item->storageType(),
-                    'tags' => $this->formatTags($item->tags()),
-                ];
-            },
-            $items
-        );
     }
 
     private function cacheKey(string $accountId, string $listId): string
@@ -199,8 +151,6 @@ final class CachedListDetailService implements ListDetailCacheInterface
             $encoded = json_encode($payload, JSON_THROW_ON_ERROR);
             $this->cache->set($key, $encoded, $this->ttlSeconds);
         } catch (Throwable) {
-            // Ignore cache failures; fall back to cold fetches.
-
             return false;
         }
 

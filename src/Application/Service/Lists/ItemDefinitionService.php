@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GameItemsList\Application\Service\Lists;
 
+use GameItemsList\Domain\Game\GameItemTemplateRepositoryInterface;
 use GameItemsList\Domain\Lists\ItemDefinition;
 use GameItemsList\Domain\Lists\ItemDefinitionRepositoryInterface;
 use GameItemsList\Domain\Lists\ListChange;
@@ -25,6 +26,7 @@ final class ItemDefinitionService
         private readonly ItemDefinitionRepositoryInterface $items,
         private readonly TagRepositoryInterface $tags,
         private readonly ListChangeRepositoryInterface $listChanges,
+        private readonly GameItemTemplateRepositoryInterface $templates,
     ) {
     }
 
@@ -114,6 +116,51 @@ final class ItemDefinitionService
 
         if ($normalizedImageUrl !== null) {
             $payload['imageUrl'] = $normalizedImageUrl;
+        }
+
+        return $this->listChanges->create(
+            $listId,
+            $accountId,
+            ListChange::TYPE_ADD_ITEM,
+            $payload,
+        );
+    }
+
+    /**
+     * @param string[] $tagIds
+     */
+    public function proposeCreateItemFromTemplate(
+        string $accountId,
+        string $listId,
+        string $templateId,
+        array $tagIds = [],
+    ): ListChange {
+        $list = $this->listService->requireListOwnedByAccount(
+            $accountId,
+            $listId,
+            'You are not allowed to modify this list.'
+        );
+
+        $template = $this->templates->findByIdForGame($templateId, $list->game()->id());
+
+        if ($template === null) {
+            throw new InvalidArgumentException('Template not available for this game.');
+        }
+
+        $normalizedTagIds = $this->normalizeTagIds($listId, $tagIds);
+
+        $payload = [
+            'name' => $template->name(),
+            'storageType' => $template->storageType(),
+            'tagIds' => $normalizedTagIds,
+        ];
+
+        if ($template->description() !== null) {
+            $payload['description'] = $template->description();
+        }
+
+        if ($template->imageUrl() !== null) {
+            $payload['imageUrl'] = $template->imageUrl();
         }
 
         return $this->listChanges->create(

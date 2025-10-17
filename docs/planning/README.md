@@ -83,4 +83,5 @@ Owners should track answers in new ADRs or inline updates here.
 | 2024-03-XX | Initial backlog + planning baseline. | AI Agent |
 | 2024-04-XX | Backlog-Status aktualisiert, Quality-Gate-Tabelle ergänzt. | AI Agent |
 | 2024-05-XX | B8 als erledigt markiert, Admin-Freigabe-Flow dokumentiert. | AI Agent |
+| 2024-06-XX | Share-Links, Game-Templates und `/app` UI als MVP ausgeliefert. | AI Agent |
 
