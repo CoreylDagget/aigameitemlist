@@ -49,10 +49,11 @@ services:
       - db_data:/var/lib/mysql
       - ./docker/mariadb/initdb.d:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u\"$${MARIADB_USER}\" -p\"$${MARIADB_PASSWORD}\""]
-      interval: 5s
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 30s
+      interval: 10s
       timeout: 5s
-      retries: 20
+      retries: 5
 
   redis:
     image: redis:7-alpine

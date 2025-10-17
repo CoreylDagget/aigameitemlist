@@ -8,6 +8,7 @@ use GameItemsList\Application\Action\Admin\RejectChangeAction;
 use GameItemsList\Application\Action\Auth\LoginAction;
 use GameItemsList\Application\Action\Auth\RegisterAction;
 use GameItemsList\Application\Action\HealthCheckAction;
+use GameItemsList\Application\Action\HomeAction;
 use GameItemsList\Application\Action\Entries\ListEntriesAction;
 use GameItemsList\Application\Action\Entries\SetEntryAction;
 use GameItemsList\Application\Action\Items\CreateItemAction;
@@ -152,6 +153,7 @@ return [
     AdminAuthorizationMiddleware::class => autowire(),
 
     HealthCheckAction::class => static fn(): HealthCheckAction => new HealthCheckAction(),
+    HomeAction::class => static fn(): HomeAction => new HomeAction(),
     OpenApiAction::class => static fn(): OpenApiAction => new OpenApiAction(dirname(__DIR__) . '/openapi.yaml'),
     SwaggerUiAction::class => static fn(): SwaggerUiAction => new SwaggerUiAction('/openapi.yaml'),
     RegisterAction::class => autowire(),

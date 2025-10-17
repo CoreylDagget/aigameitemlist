@@ -8,6 +8,7 @@ use GameItemsList\Application\Action\Admin\RejectChangeAction;
 use GameItemsList\Application\Action\Auth\LoginAction;
 use GameItemsList\Application\Action\Auth\RegisterAction;
 use GameItemsList\Application\Action\HealthCheckAction;
+use GameItemsList\Application\Action\HomeAction;
 use GameItemsList\Application\Action\Entries\ListEntriesAction;
 use GameItemsList\Application\Action\Entries\SetEntryAction;
 use GameItemsList\Application\Action\Items\CreateItemAction;
@@ -28,6 +29,7 @@ use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 
 return static function (App $app): void {
+    $app->get('/', HomeAction::class);
     $app->get('/health', HealthCheckAction::class);
     $app->get('/openapi.yaml', OpenApiAction::class);
     $app->get('/docs', SwaggerUiAction::class);
