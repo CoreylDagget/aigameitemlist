@@ -12,7 +12,8 @@ final class AuthResult
         private readonly Account $account,
         private readonly string $accessToken,
         private readonly int $expiresIn,
-        private readonly ?string $refreshToken
+        private readonly ?string $refreshToken,
+        private readonly ?int $refreshTokenExpiresIn
     ) {
     }
 
@@ -34,5 +35,10 @@ final class AuthResult
     public function refreshToken(): ?string
     {
         return $this->refreshToken;
+    }
+
+    public function refreshTokenExpiresIn(): ?int
+    {
+        return $this->refreshTokenExpiresIn;
     }
 }

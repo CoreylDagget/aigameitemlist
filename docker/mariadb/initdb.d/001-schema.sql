@@ -6,6 +6,33 @@ CREATE TABLE IF NOT EXISTS accounts (
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS refresh_token_sessions (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    account_id CHAR(36) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    expires_at DATETIME(6) NOT NULL,
+    revoked_at DATETIME(6) NULL,
+    CONSTRAINT refresh_token_sessions_account_fk FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX IF NOT EXISTS idx_refresh_token_sessions_account_id ON refresh_token_sessions (account_id);
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    session_id CHAR(36) NOT NULL,
+    account_id CHAR(36) NOT NULL,
+    token_hash CHAR(64) NOT NULL UNIQUE,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    expires_at DATETIME(6) NOT NULL,
+    used_at DATETIME(6) NULL,
+    revoked_at DATETIME(6) NULL,
+    CONSTRAINT refresh_tokens_session_fk FOREIGN KEY (session_id) REFERENCES refresh_token_sessions(id) ON DELETE CASCADE,
+    CONSTRAINT refresh_tokens_account_fk FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_session_id ON refresh_tokens (session_id);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_account_id ON refresh_tokens (account_id);
+
 CREATE TABLE IF NOT EXISTS games (
     id CHAR(36) NOT NULL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
