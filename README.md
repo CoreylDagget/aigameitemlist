@@ -83,12 +83,11 @@ make down
 - **PHPUnit**: `composer test` – Integrationstests folgen mit den Admin-Workflows, Test-Skelett liegt unter [`tests/`](tests/).
 - **PHPStan (Level 8)**: `composer phpstan`
 - **Coding Standards**: `composer phpcs` (Prüfung) & `composer fix` (PHP CS Fixer für Auto-Fixes).
-  _CI-Hinweis_: Die automatischen `composer phpcs`- und PHP CS Fixer-Dry-Run-Schritte sind vorübergehend im GitHub-Workflow deaktiviert, bis
-  die lokalen Sniff-Funde im Repository korrigiert sind. Ergebnisse weiterhin lokal dokumentieren.
+  _CI-Hinweis_: GitHub Actions führt sowohl `composer phpcs` als auch den PHP CS Fixer Dry-Run aus; lokale Läufe bleiben vor jedem PR Pflicht.
 - **Security Audit**: `composer audit` sobald Abhängigkeiten vor dem Release eingefroren sind.
 - **Checkliste**: Vor jedem Merge alle oben genannten Kommandos ausführen und Ergebnisse im PR festhalten; Abweichungen (z. B. fehlende Tests) müssen als Follow-up dokumentiert werden.
 
-> Hinweis: Eine frühere PHPCS-Warnung („file should declare new symbols and cause no side effects“) im `CoverageGuardCommandTest` entstand durch ein `require_once` auf Datei-Ebene. Seit das Coverage-Helper-Skript im `setUpBeforeClass()` geladen wird, sind PHPCS und der PHP CS Fixer wieder sauber – die CI-Schritte sind dennoch vorübergehend ausgesetzt (siehe oben), um die jüngsten Sniff-Regressionen gezielt zu beheben.
+> Hinweis: Eine frühere PHPCS-Warnung („file should declare new symbols and cause no side effects“) im `CoverageGuardCommandTest` entstand durch ein `require_once` auf Datei-Ebene. Seit das Coverage-Helper-Skript im `setUpBeforeClass()` geladen wird, laufen PHPCS und der PHP CS Fixer sowohl lokal als auch in CI wieder sauber.
 
 ## Health Endpoint
 `GET /health` liefert eine JSON-Antwort mit Service-Status, um Deployments und lokale Setups schnell prüfen zu können. Dieser Endpoint wird von Docker Compose beim lokalen Smoke-Test genutzt und dient später als Basis für Monitoring Checks.
