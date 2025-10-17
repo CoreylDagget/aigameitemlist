@@ -126,7 +126,9 @@ INSERT IGNORE INTO games (id, name)
 VALUES
     ('11111111-1111-1111-1111-111111111111', 'Elden Ring'),
     ('22222222-2222-2222-2222-222222222222', 'The Legend of Zelda: Tears of the Kingdom'),
-    ('33333333-3333-3333-3333-333333333333', 'Final Fantasy XIV');
+    ('33333333-3333-3333-3333-333333333333', 'Final Fantasy XIV'),
+    ('55555555-5555-5555-5555-555555555555', 'Minecraft'),
+    ('66666666-6666-6666-6666-666666666666', 'World of Warcraft');
 
 INSERT IGNORE INTO game_item_templates (id, game_id, name, description, image_url, storage_type)
 VALUES
@@ -139,3 +141,42 @@ VALUES
     ('ccccccc1-cccc-4ccc-cccc-ccccccccccc1', '33333333-3333-3333-3333-333333333333', 'Tomestone of Causality', 'Weekly-capped endgame currency.', NULL, 'count'),
     ('ccccccc2-cccc-4ccc-cccc-ccccccccccc2', '33333333-3333-3333-3333-333333333333', 'Raid Weapon Token', 'Token exchanged for raid weapon coffers.', NULL, 'count'),
     ('ccccccc3-cccc-4ccc-cccc-ccccccccccc3', '33333333-3333-3333-3333-333333333333', 'Housing Lottery Entry', 'Track submissions to the housing lottery.', NULL, 'text');
+
+INSERT IGNORE INTO accounts (id, email, password_hash, is_admin)
+VALUES
+    ('44444444-4444-4444-4444-444444444444', 'demo@example.com', '$2y$12$ANYzvRJAHOcKJ/EvZrireO8D0jBTp0qvZJEjZSd9VKlfidOn8AEYC', 0);
+
+INSERT IGNORE INTO lists (id, account_id, game_id, name, description, is_published)
+VALUES
+    ('77777777-7777-7777-7777-777777777777', '44444444-4444-4444-4444-444444444444', '55555555-5555-5555-5555-555555555555', 'Minecraft Survival Kit', 'Starter checklist for a fresh world.', 1),
+    ('88888888-8888-8888-8888-888888888888', '44444444-4444-4444-4444-444444444444', '66666666-6666-6666-6666-666666666666', 'Raid Night Preparation', 'Consumables and weekly tasks ready for raid.', 1);
+
+INSERT IGNORE INTO item_definitions (id, list_id, name, description, image_url, storage_type)
+VALUES
+    ('10101010-aaaa-4aaa-aaaa-000000000001', '77777777-7777-7777-7777-777777777777', 'Gather Oak Logs', 'Stock up on building material for the first shelter.', NULL, 'count'),
+    ('10101010-aaaa-4aaa-aaaa-000000000002', '77777777-7777-7777-7777-777777777777', 'Craft Stone Pickaxe', 'Upgrade tools after the first night.', NULL, 'boolean'),
+    ('10101010-aaaa-4aaa-aaaa-000000000003', '77777777-7777-7777-7777-777777777777', 'Build First Shelter', 'Secure a lit shelter before nightfall.', NULL, 'boolean'),
+    ('10101010-aaaa-4aaa-aaaa-000000000004', '77777777-7777-7777-7777-777777777777', 'Stock Cooked Beef', 'Keep a stash of cooked food for adventures.', NULL, 'count'),
+    ('20202020-bbbb-4bbb-bbbb-000000000001', '88888888-8888-8888-8888-888888888888', 'Flask of Alchemical Chaos', 'Carry flasks for every boss pull.', NULL, 'count'),
+    ('20202020-bbbb-4bbb-bbbb-000000000002', '88888888-8888-8888-8888-888888888888', 'Feast of the Divine', 'Have a raid feast ready for the group.', NULL, 'count'),
+    ('20202020-bbbb-4bbb-bbbb-000000000003', '88888888-8888-8888-8888-888888888888', 'Weapon Oils Restocked', 'Ensure temporary weapon enchants are available.', NULL, 'boolean'),
+    ('20202020-bbbb-4bbb-bbbb-000000000004', '88888888-8888-8888-8888-888888888888', 'Augment Runes', 'Purchase augment runes before raid night.', NULL, 'count'),
+    ('20202020-bbbb-4bbb-bbbb-000000000005', '88888888-8888-8888-8888-888888888888', 'Repair Hammer & Kits', 'Bring repair tools for post-wipe fixes.', NULL, 'boolean'),
+    ('20202020-bbbb-4bbb-bbbb-000000000006', '88888888-8888-8888-8888-888888888888', 'Weekly Mythic+ Completed', 'Finish at least one Mythic+ for the vault.', NULL, 'boolean'),
+    ('20202020-bbbb-4bbb-bbbb-000000000007', '88888888-8888-8888-8888-888888888888', 'Raid Strategy Notes', 'Keep personal notes handy for each encounter.', NULL, 'text'),
+    ('20202020-bbbb-4bbb-bbbb-000000000008', '88888888-8888-8888-8888-888888888888', 'Bonus Rolls Available', 'Confirm seals or tokens are ready to spend.', NULL, 'count');
+
+INSERT IGNORE INTO item_entries (id, item_definition_id, account_id, value_boolean, value_integer, value_text)
+VALUES
+    ('30303030-cccc-4ccc-cccc-000000000001', '10101010-aaaa-4aaa-aaaa-000000000001', '44444444-4444-4444-4444-444444444444', NULL, 64, NULL),
+    ('30303030-cccc-4ccc-cccc-000000000002', '10101010-aaaa-4aaa-aaaa-000000000002', '44444444-4444-4444-4444-444444444444', 1, NULL, NULL),
+    ('30303030-cccc-4ccc-cccc-000000000003', '10101010-aaaa-4aaa-aaaa-000000000003', '44444444-4444-4444-4444-444444444444', 1, NULL, NULL),
+    ('30303030-cccc-4ccc-cccc-000000000004', '10101010-aaaa-4aaa-aaaa-000000000004', '44444444-4444-4444-4444-444444444444', NULL, 12, NULL),
+    ('40404040-dddd-4ddd-dddd-000000000001', '20202020-bbbb-4bbb-bbbb-000000000001', '44444444-4444-4444-4444-444444444444', NULL, 2, NULL),
+    ('40404040-dddd-4ddd-dddd-000000000002', '20202020-bbbb-4bbb-bbbb-000000000002', '44444444-4444-4444-4444-444444444444', NULL, 1, NULL),
+    ('40404040-dddd-4ddd-dddd-000000000003', '20202020-bbbb-4bbb-bbbb-000000000003', '44444444-4444-4444-4444-444444444444', 1, NULL, NULL),
+    ('40404040-dddd-4ddd-dddd-000000000004', '20202020-bbbb-4bbb-bbbb-000000000004', '44444444-4444-4444-4444-444444444444', NULL, 3, NULL),
+    ('40404040-dddd-4ddd-dddd-000000000005', '20202020-bbbb-4bbb-bbbb-000000000005', '44444444-4444-4444-4444-444444444444', 1, NULL, NULL),
+    ('40404040-dddd-4ddd-dddd-000000000006', '20202020-bbbb-4bbb-bbbb-000000000006', '44444444-4444-4444-4444-444444444444', 0, NULL, NULL),
+    ('40404040-dddd-4ddd-dddd-000000000007', '20202020-bbbb-4bbb-bbbb-000000000007', '44444444-4444-4444-4444-444444444444', NULL, NULL, 'Focus adds during phase two and rotate healer cooldowns.'),
+    ('40404040-dddd-4ddd-dddd-000000000008', '20202020-bbbb-4bbb-bbbb-000000000008', '44444444-4444-4444-4444-444444444444', NULL, 2, NULL);

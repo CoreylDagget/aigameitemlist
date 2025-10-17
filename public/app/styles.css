@@ -68,17 +68,58 @@ body {
   align-items: flex-end;
 }
 
-.auth-forms {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-}
-
 label {
   display: flex;
   flex-direction: column;
   font-weight: 600;
   gap: 0.4rem;
+}
+
+details.auth-collapsible {
+  margin-top: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+details.auth-collapsible summary {
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+details.auth-collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+details.auth-collapsible summary::after {
+  content: '▸';
+  margin-left: auto;
+  transition: transform 0.2s ease;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+details.auth-collapsible[open] summary::after {
+  transform: rotate(90deg);
+}
+
+details.auth-collapsible form {
+  margin-top: 1rem;
+}
+
+.hint.small {
+  font-size: 0.875rem;
+}
+
+.hint code {
+  background: rgba(15, 23, 42, 0.55);
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.5rem;
 }
 
 input,

@@ -40,6 +40,7 @@ const els = {
   shareRevoke: document.querySelector('#share-revoke'),
   createListForm: document.querySelector('#create-list-form'),
   registerForm: document.querySelector('#register-form'),
+  registerDetails: document.querySelector('#register-details'),
   loginForm: document.querySelector('#login-form'),
   manualAddForm: document.querySelector('#manual-add-form'),
   templateAddForm: document.querySelector('#template-add-form'),
@@ -350,12 +351,24 @@ function setAuthState(token, email) {
     els.authStatus.textContent = `Signed in as ${email ?? 'account'}.`;
     els.gamesCard.hidden = false;
     els.listsCard.hidden = false;
+    if (els.registerDetails) {
+      els.registerDetails.open = false;
+    }
   } else {
     state.token = null;
     localStorage.removeItem('gil_token');
     els.authStatus.textContent = 'Not authenticated.';
     els.gamesCard.hidden = true;
     els.listsCard.hidden = true;
+    if (els.loginForm) {
+      els.loginForm.reset();
+    }
+    if (els.registerForm) {
+      els.registerForm.reset();
+    }
+    if (els.registerDetails) {
+      els.registerDetails.open = false;
+    }
     state.lists = [];
     state.activeListDetail = null;
     state.itemFilters = { search: '', tagId: '' };
@@ -391,7 +404,16 @@ async function handleRegister(event) {
 
     setAuthState(accessToken, body.email);
     await refreshLists();
+    if (els.registerForm) {
+      els.registerForm.reset();
+    }
+    if (els.registerDetails) {
+      els.registerDetails.open = false;
+    }
   } catch (error) {
+    if (els.registerDetails) {
+      els.registerDetails.open = true;
+    }
     alert(error.message);
   }
 }
