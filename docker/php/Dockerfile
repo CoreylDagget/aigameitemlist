@@ -20,8 +20,11 @@ RUN apk add --no-cache \
 RUN docker-php-ext-configure intl \
     && docker-php-ext-install -j"$(nproc)" intl pdo pdo_mysql opcache
 
-RUN pecl install xdebug \
-    && docker-php-ext-enable xdebug
+RUN set -eux; \
+    apk add --no-cache --virtual .build-deps $PHPIZE_DEPS; \
+    pecl install xdebug; \
+    docker-php-ext-enable xdebug; \
+    apk del .build-deps
 
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
