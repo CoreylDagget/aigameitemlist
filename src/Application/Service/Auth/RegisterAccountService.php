@@ -12,7 +12,8 @@ final class RegisterAccountService
 {
     public function __construct(
         private readonly AccountRepositoryInterface $accounts,
-        private readonly JwtTokenService $jwtTokenService
+        private readonly JwtTokenService $jwtTokenService,
+        private readonly RefreshTokenService $refreshTokenService
     ) {
     }
 
@@ -32,7 +33,14 @@ final class RegisterAccountService
 
         $account = $this->accounts->create($email, $passwordHash);
         $token = $this->jwtTokenService->issueForAccount($account);
+        $refreshToken = $this->refreshTokenService->issueForAccount($account);
 
-        return new AuthResult($account, $token->token(), $token->expiresIn(), null);
+        return new AuthResult(
+            $account,
+            $token->token(),
+            $token->expiresIn(),
+            $refreshToken->token(),
+            $refreshToken->expiresIn()
+        );
     }
 }

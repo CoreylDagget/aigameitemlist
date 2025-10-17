@@ -62,6 +62,10 @@ final class RegisterAction
             $tokens['refreshToken'] = $result->refreshToken();
         }
 
+        if ($result->refreshTokenExpiresIn() !== null) {
+            $tokens['refreshTokenExpiresIn'] = $result->refreshTokenExpiresIn();
+        }
+
         return $this->responder->respond([
             'account' => [
                 'id' => $result->account()->id(),

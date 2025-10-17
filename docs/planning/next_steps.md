@@ -15,6 +15,7 @@ This summary distills the immediate expectations from `AGENTS.md` and the planni
 - ✅ **Filters & caching (B7) delivered**: Combined tag/owned/search filters now ship with Redis-backed caching, observer instrumentation, and integration coverage for cache busting on personal entry changes.
 - ✅ **Admin approval materialization (B8) delivered**: Approve/reject endpoints now apply pending changes transactionally, enforce reviewer separation, and bust list detail caches for affected owners.
 - 🚧 **Quality gates & CI (B9) underway**: CI-Workflow erstellt (`.github/workflows/ci.yml`) und bindet PHPUnit (mit Coverage-Limits), PHPStan sowie `composer audit` ein. PHPCS- und PHP-CS-Fixer-Schritte laufen wieder regulär in CI. Lokale Verifikation bleibt blockiert, bis Composer-Abhängigkeiten installiert werden können. Coverage-Grenzen (80 % Lines / 75 % Branches) werden weiterhin per `tools/coverage-guard.php` automatisiert geprüft.
+- ✅ **Refresh token rotation & reuse detection (B11) delivered**: `/v1/auth/refresh` rotiert Refresh Tokens innerhalb eines 30-Tage-Sessions-Fensters, speichert ausschließlich SHA-256-Hashes und sperrt komplette Familien bei Reuse automatisch. Service-Tests decken Erfolgsfall, Ablauf und Missbrauch ab.
 
 ## Execution Guardrails
 

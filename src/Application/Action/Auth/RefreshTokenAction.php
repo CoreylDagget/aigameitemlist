@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace GameItemsList\Application\Action\Auth;
 
 use GameItemsList\Application\Http\JsonResponder;
-use GameItemsList\Application\Service\Auth\AuthenticateAccountService;
+use GameItemsList\Application\Service\Auth\Exception\ExpiredRefreshTokenException;
+use GameItemsList\Application\Service\Auth\Exception\InvalidRefreshTokenException;
+use GameItemsList\Application\Service\Auth\Exception\RefreshTokenReuseDetectedException;
+use GameItemsList\Application\Service\Auth\RefreshAccessTokenService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use RuntimeException;
 
-final class LoginAction
+final class RefreshTokenAction
 {
     public function __construct(
-        private readonly AuthenticateAccountService $authenticateAccountService,
+        private readonly RefreshAccessTokenService $refreshAccessTokenService,
         private readonly JsonResponder $responder
     ) {
     }
@@ -21,17 +23,16 @@ final class LoginAction
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
         $data = (array) $request->getParsedBody();
-        $email = isset($data['email']) ? trim((string) $data['email']) : '';
-        $password = isset($data['password']) ? (string) $data['password'] : '';
+        $refreshToken = isset($data['refreshToken']) ? trim((string) $data['refreshToken']) : '';
 
-        if ($email === '' || $password === '') {
-            return $this->responder->problem(400, 'Invalid request', 'Email and password are required.');
+        if ($refreshToken === '') {
+            return $this->responder->problem(400, 'Invalid request', 'Refresh token is required.');
         }
 
         try {
-            $result = $this->authenticateAccountService->authenticate($email, $password);
-        } catch (RuntimeException $exception) {
-            return $this->responder->problem(401, 'Unauthorized', 'Invalid credentials.');
+            $result = $this->refreshAccessTokenService->refresh($refreshToken);
+        } catch (InvalidRefreshTokenException | RefreshTokenReuseDetectedException | ExpiredRefreshTokenException $exception) {
+            return $this->responder->problem(401, 'Unauthorized', 'Invalid refresh token.');
         }
 
         $tokens = [

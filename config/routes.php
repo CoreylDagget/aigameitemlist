@@ -6,6 +6,7 @@ use GameItemsList\Application\Action\Admin\ApproveChangeAction;
 use GameItemsList\Application\Action\Admin\ListChangesAction;
 use GameItemsList\Application\Action\Admin\RejectChangeAction;
 use GameItemsList\Application\Action\Auth\LoginAction;
+use GameItemsList\Application\Action\Auth\RefreshTokenAction;
 use GameItemsList\Application\Action\Auth\RegisterAction;
 use GameItemsList\Application\Action\Games\ListGameItemTemplatesAction;
 use GameItemsList\Application\Action\Games\ListGamesAction;
@@ -42,6 +43,7 @@ return static function (App $app): void {
 
     $app->post('/v1/auth/register', RegisterAction::class);
     $app->post('/v1/auth/login', LoginAction::class);
+    $app->post('/v1/auth/refresh', RefreshTokenAction::class);
 
     $app->get('/v1/games', ListGamesAction::class);
     $app->get('/v1/games/{gameId}/item-templates', ListGameItemTemplatesAction::class);

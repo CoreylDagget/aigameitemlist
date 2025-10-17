@@ -6,6 +6,7 @@ use GameItemsList\Application\Action\Admin\ApproveChangeAction;
 use GameItemsList\Application\Action\Admin\ListChangesAction;
 use GameItemsList\Application\Action\Admin\RejectChangeAction;
 use GameItemsList\Application\Action\Auth\LoginAction;
+use GameItemsList\Application\Action\Auth\RefreshTokenAction;
 use GameItemsList\Application\Action\Auth\RegisterAction;
 use GameItemsList\Application\Action\Games\ListGameItemTemplatesAction;
 use GameItemsList\Application\Action\Games\ListGamesAction;
@@ -30,11 +31,16 @@ use GameItemsList\Application\Action\SwaggerUiAction;
 use GameItemsList\Application\Action\Tags\CreateTagAction;
 use GameItemsList\Application\Action\Tags\ListTagsAction;
 use GameItemsList\Application\Cache\CacheInterface;
+use GameItemsList\Application\Clock\ClockInterface;
+use GameItemsList\Application\Clock\SystemClock;
 use GameItemsList\Application\Http\JsonResponder;
 use GameItemsList\Application\Middleware\AdminAuthorizationMiddleware;
 use GameItemsList\Application\Middleware\AuthenticationMiddleware;
 use GameItemsList\Application\Security\JwtTokenService;
+use GameItemsList\Application\Security\SecurityAlertServiceInterface;
 use GameItemsList\Application\Service\Auth\AuthenticateAccountService;
+use GameItemsList\Application\Service\Auth\RefreshAccessTokenService;
+use GameItemsList\Application\Service\Auth\RefreshTokenService;
 use GameItemsList\Application\Service\Auth\RegisterAccountService;
 use GameItemsList\Application\Service\Admin\AdminListChangeService;
 use GameItemsList\Application\Service\Admin\AdminListChangeServiceInterface;
@@ -49,6 +55,7 @@ use GameItemsList\Application\Service\Lists\ListServiceInterface;
 use GameItemsList\Application\Service\Lists\ListShareService;
 use GameItemsList\Application\Service\Lists\TagService;
 use GameItemsList\Domain\Account\AccountRepositoryInterface;
+use GameItemsList\Domain\Auth\RefreshTokenRepositoryInterface;
 use GameItemsList\Domain\Game\GameItemTemplateRepositoryInterface;
 use GameItemsList\Domain\Game\GameRepositoryInterface;
 use GameItemsList\Domain\Lists\ListChangeRepositoryInterface;
@@ -59,6 +66,7 @@ use GameItemsList\Domain\Lists\ListShareTokenRepositoryInterface;
 use GameItemsList\Domain\Lists\TagRepositoryInterface;
 use GameItemsList\Infrastructure\Cache\RedisCache;
 use GameItemsList\Infrastructure\Persistence\Account\PdoAccountRepository;
+use GameItemsList\Infrastructure\Persistence\Auth\PdoRefreshTokenRepository;
 use GameItemsList\Infrastructure\Persistence\Game\PdoGameItemTemplateRepository;
 use GameItemsList\Infrastructure\Persistence\Game\PdoGameRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoListChangeRepository;
@@ -67,6 +75,7 @@ use GameItemsList\Infrastructure\Persistence\Lists\PdoListShareTokenRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoItemDefinitionRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoItemEntryRepository;
 use GameItemsList\Infrastructure\Persistence\Lists\PdoTagRepository;
+use GameItemsList\Infrastructure\Security\ErrorLogSecurityAlertService;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Predis\Client;
@@ -118,6 +127,8 @@ return [
     CacheInterface::class => static fn(ContainerInterface $container): CacheInterface
         => new RedisCache($container->get(ClientInterface::class)),
 
+    ClockInterface::class => static fn(): ClockInterface => new SystemClock(),
+
     JsonResponder::class => static fn(): JsonResponder => new JsonResponder(),
 
     JwtTokenService::class => static function (): JwtTokenService {
@@ -132,6 +143,12 @@ return [
 
     AccountRepositoryInterface::class => static fn(ContainerInterface $container): AccountRepositoryInterface
         => new PdoAccountRepository($container->get(PDO::class)),
+
+    RefreshTokenRepositoryInterface::class => static fn(ContainerInterface $container): RefreshTokenRepositoryInterface
+        => new PdoRefreshTokenRepository($container->get(PDO::class)),
+
+    SecurityAlertServiceInterface::class => static fn(): SecurityAlertServiceInterface
+        => new ErrorLogSecurityAlertService(),
 
     GameRepositoryInterface::class => static fn(ContainerInterface $container): GameRepositoryInterface
         => new PdoGameRepository($container->get(PDO::class)),
@@ -159,6 +176,8 @@ return [
 
     RegisterAccountService::class => autowire(),
     AuthenticateAccountService::class => autowire(),
+    RefreshTokenService::class => autowire(),
+    RefreshAccessTokenService::class => autowire(),
     AdminListChangeService::class => autowire(),
     AdminListChangeServiceInterface::class => autowire(AdminListChangeService::class),
     ListService::class => autowire(),
@@ -180,6 +199,7 @@ return [
     SwaggerUiAction::class => static fn(): SwaggerUiAction => new SwaggerUiAction('/openapi.yaml'),
     RegisterAction::class => autowire(),
     LoginAction::class => autowire(),
+    RefreshTokenAction::class => autowire(),
     ListIndexAction::class => autowire(),
     CreateListAction::class => autowire(),
     GetListAction::class => autowire(),

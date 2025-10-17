@@ -97,6 +97,33 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /v1/auth/refresh:
+    post:
+      tags: [auth]
+      summary: Rotate a refresh token and issue a new access token
+      operationId: refreshTokens
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Tokens refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Refresh token is invalid or expired
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /v1/games:
     get:
       tags: [games]
@@ -679,6 +706,13 @@ components:
         password:
           type: string
           format: password
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token issued during login or registration
     AuthResponse:
       type: object
       required: [account, tokens]
@@ -701,6 +735,10 @@ components:
         refreshToken:
           type: string
           description: Optional refresh token issued during register/login
+        refreshTokenExpiresIn:
+          type: integer
+          format: int32
+          description: Lifetime of the refresh token in seconds
     Account:
       type: object
       required: [id, email, createdAt]
