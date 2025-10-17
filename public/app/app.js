@@ -4,7 +4,12 @@ const state = {
   selectedListId: null,
   games: [],
   templatesByGame: new Map(),
+  activeListDetail: null,
+  itemFilters: { search: '', tagId: '' },
 };
+
+const DEFAULT_TAG_COLOR = '#38bdf8';
+const tagNameCollator = new Intl.Collator(undefined, { sensitivity: 'base' });
 
 const els = {
   authStatus: document.querySelector('#auth-status'),
@@ -17,6 +22,14 @@ const els = {
   itemsList: document.querySelector('#items'),
   itemsHint: document.querySelector('#items-hint'),
   templateSelect: document.querySelector('#template-select'),
+  tagsList: document.querySelector('#tags'),
+  tagsHint: document.querySelector('#tags-hint'),
+  tagAddForm: document.querySelector('#tag-add-form'),
+  tagColorToggle: document.querySelector('#tag-color-toggle'),
+  tagColorInput: document.querySelector('#tag-color-input'),
+  itemsFilterSearch: document.querySelector('#items-filter-search'),
+  itemsFilterTag: document.querySelector('#items-filter-tag'),
+  itemsFiltersClear: document.querySelector('#items-filters-clear'),
   sharePanel: document.querySelector('#share-panel'),
   shareStatus: document.querySelector('#share-status'),
   shareLinkWrapper: document.querySelector('#share-link'),
@@ -66,6 +79,270 @@ async function apiFetch(path, { method = 'GET', body, auth = true } = {}) {
   return data;
 }
 
+function hexToRgba(hex, alpha) {
+  if (typeof hex !== 'string') {
+    return null;
+  }
+
+  const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+
+  if (!match) {
+    return null;
+  }
+
+  const value = match[1];
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function applyTagColor(element, color) {
+  if (!element || !color) {
+    return;
+  }
+
+  const background = hexToRgba(color, 0.18);
+  const border = hexToRgba(color, 0.45);
+
+  if (background) {
+    element.style.backgroundColor = background;
+  }
+
+  if (border) {
+    element.style.borderColor = border;
+  }
+
+  element.style.color = color;
+  element.dataset.color = color;
+}
+
+function createTagBadge(tag) {
+  const badge = document.createElement('span');
+  badge.className = 'tag';
+  badge.textContent = tag.name;
+
+  if (tag.color) {
+    applyTagColor(badge, tag.color);
+  }
+
+  return badge;
+}
+
+function appendTagList(target, tags) {
+  if (!target || !Array.isArray(tags) || tags.length === 0) {
+    return null;
+  }
+
+  const tagList = document.createElement('div');
+  tagList.className = 'tag-list';
+
+  const sortedTags = [...tags].sort((a, b) =>
+    tagNameCollator.compare(a.name ?? '', b.name ?? '')
+  );
+
+  sortedTags.forEach((tag) => {
+    if (!tag || !tag.name) {
+      return;
+    }
+
+    tagList.appendChild(createTagBadge(tag));
+  });
+
+  if (tagList.childElementCount === 0) {
+    return null;
+  }
+
+  target.appendChild(tagList);
+  return tagList;
+}
+
+function formatTimestamp(value) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toLocaleString();
+}
+
+function describeStorageType(value) {
+  switch (value) {
+    case 'boolean':
+      return 'Yes / No';
+    case 'count':
+      return 'Count';
+    case 'text':
+      return 'Text';
+    default:
+      return 'unknown';
+  }
+}
+
+function populateTagFilter(tags = []) {
+  if (!els.itemsFilterTag) {
+    return;
+  }
+
+  els.itemsFilterTag.innerHTML = '';
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = tags.length > 0 ? 'All tags' : 'No tags available';
+  els.itemsFilterTag.appendChild(placeholder);
+  els.itemsFilterTag.disabled = tags.length === 0;
+
+  const sortedTags = [...tags].sort((a, b) =>
+    tagNameCollator.compare(a.name ?? '', b.name ?? '')
+  );
+
+  sortedTags.forEach((tag) => {
+    if (!tag || !tag.id) {
+      return;
+    }
+
+    const option = document.createElement('option');
+    option.value = tag.id;
+    option.textContent = tag.name;
+    els.itemsFilterTag.appendChild(option);
+  });
+}
+
+function updateItemsFiltersUI() {
+  if (els.itemsFilterSearch) {
+    els.itemsFilterSearch.value = state.itemFilters.search ?? '';
+  }
+
+  if (els.itemsFilterTag) {
+    const desiredValue = state.itemFilters.tagId ?? '';
+    const optionValues = Array.from(els.itemsFilterTag.options, (option) => option.value);
+
+    if (!optionValues.includes(desiredValue)) {
+      state.itemFilters.tagId = '';
+    }
+
+    els.itemsFilterTag.value = state.itemFilters.tagId ?? '';
+  }
+
+  if (els.itemsFiltersClear) {
+    const hasFilters = Boolean(state.itemFilters.search) || Boolean(state.itemFilters.tagId);
+    els.itemsFiltersClear.disabled = !hasFilters;
+  }
+}
+
+function renderTags(tags = []) {
+  if (!els.tagsList || !els.tagsHint) {
+    return;
+  }
+
+  els.tagsList.innerHTML = '';
+
+  const hasTags = Array.isArray(tags) && tags.length > 0;
+  els.tagsHint.hidden = hasTags;
+  els.tagsList.hidden = !hasTags;
+
+  if (!hasTags) {
+    return;
+  }
+
+  const sortedTags = [...tags].sort((a, b) =>
+    tagNameCollator.compare(a.name ?? '', b.name ?? '')
+  );
+
+  sortedTags.forEach((tag) => {
+    if (!tag || !tag.name) {
+      return;
+    }
+
+    const item = document.createElement('li');
+    item.appendChild(createTagBadge(tag));
+    els.tagsList.appendChild(item);
+  });
+}
+
+function renderItems() {
+  if (!els.itemsList || !els.itemsHint) {
+    return;
+  }
+
+  const detail = state.activeListDetail;
+
+  if (!detail) {
+    els.itemsList.innerHTML = '';
+    els.itemsHint.hidden = false;
+    els.itemsHint.textContent = 'Select a list to view its items.';
+    return;
+  }
+
+  const allItems = Array.isArray(detail.items) ? detail.items : [];
+  let filtered = [...allItems];
+
+  if (state.itemFilters.tagId) {
+    filtered = filtered.filter((item) =>
+      Array.isArray(item.tags) && item.tags.some((tag) => tag.id === state.itemFilters.tagId)
+    );
+  }
+
+  if (state.itemFilters.search) {
+    const needle = state.itemFilters.search.toLowerCase();
+
+    filtered = filtered.filter((item) => {
+      const haystacks = [
+        item.name ?? '',
+        item.description ?? '',
+        ...(Array.isArray(item.tags) ? item.tags.map((tag) => tag.name ?? '') : []),
+      ];
+
+      return haystacks.some((value) => value.toLowerCase().includes(needle));
+    });
+  }
+
+  els.itemsList.innerHTML = '';
+
+  if (allItems.length === 0) {
+    els.itemsHint.hidden = false;
+    els.itemsHint.textContent = 'No items yet. Approved items will show here once available.';
+    return;
+  }
+
+  if (filtered.length === 0) {
+    els.itemsHint.hidden = false;
+    els.itemsHint.textContent = 'No items match the current filters. Try adjusting or clearing them.';
+    return;
+  }
+
+  els.itemsHint.hidden = true;
+
+  filtered.forEach((item) => {
+    const li = document.createElement('li');
+    const title = document.createElement('h5');
+    title.textContent = item.name;
+    li.appendChild(title);
+
+    if (item.description) {
+      const desc = document.createElement('p');
+      desc.textContent = item.description;
+      li.appendChild(desc);
+    }
+
+    const type = document.createElement('p');
+    type.className = 'muted';
+    const storageLabel = describeStorageType(item.storageType);
+    type.textContent = `Type: ${storageLabel}`;
+    li.appendChild(type);
+
+    appendTagList(li, Array.isArray(item.tags) ? item.tags : []);
+
+    els.itemsList.appendChild(li);
+  });
+}
+
 function setAuthState(token, email) {
   if (token) {
     state.token = token;
@@ -80,8 +357,23 @@ function setAuthState(token, email) {
     els.gamesCard.hidden = true;
     els.listsCard.hidden = true;
     state.lists = [];
+    state.activeListDetail = null;
+    state.itemFilters = { search: '', tagId: '' };
+    state.templatesByGame.clear();
     renderLists();
     els.listDetail.hidden = true;
+    renderTags([]);
+    populateTagFilter([]);
+    populateTemplateSelect([]);
+    updateItemsFiltersUI();
+    renderItems();
+    if (els.tagAddForm) {
+      els.tagAddForm.reset();
+    }
+    if (els.tagColorToggle) {
+      els.tagColorToggle.checked = false;
+    }
+    handleTagColorToggle();
   }
 }
 
@@ -139,6 +431,14 @@ async function refreshLists() {
       if (!stillExists) {
         state.selectedListId = null;
         els.listDetail.hidden = true;
+        state.activeListDetail = null;
+        state.itemFilters = { search: '', tagId: '' };
+        renderTags([]);
+        populateTagFilter([]);
+        updateItemsFiltersUI();
+        renderItems();
+      } else {
+        await loadListDetail(state.selectedListId, { preserveFilters: true });
       }
     }
   } catch (error) {
@@ -172,64 +472,91 @@ function renderLists() {
   });
 }
 
-async function selectList(listId) {
-  state.selectedListId = listId;
-  renderLists();
+async function loadListDetail(listId, { preserveFilters = false } = {}) {
+  if (!listId) {
+    return;
+  }
 
   try {
     const detail = await apiFetch(`/v1/lists/${listId}`);
-    renderListDetail(detail);
+    renderListDetail(detail, { preserveFilters });
     await loadShareStatus(listId);
     await ensureTemplatesLoaded(detail.game.id);
   } catch (error) {
+    console.error('Unable to load list', error);
     alert(`Unable to load list: ${error.message}`);
   }
 }
 
-function renderListDetail(detail) {
+async function selectList(listId) {
+  state.selectedListId = listId;
+  renderLists();
+  await loadListDetail(listId);
+}
+
+function renderListDetail(detail, { preserveFilters = false } = {}) {
+  state.activeListDetail = detail;
   els.listDetail.hidden = false;
   els.listTitle.textContent = `${detail.name} — ${detail.game.name}`;
   els.listDescription.textContent = detail.description ?? 'No description provided.';
 
-  const items = detail.items ?? [];
-  els.itemsList.innerHTML = '';
-
-  if (items.length === 0) {
-    els.itemsHint.hidden = false;
-  } else {
-    els.itemsHint.hidden = true;
-    items.forEach((item) => {
-      const li = document.createElement('li');
-      const title = document.createElement('h5');
-      title.textContent = item.name;
-      li.appendChild(title);
-
-      const type = document.createElement('p');
-      type.className = 'muted';
-      type.textContent = `Type: ${item.storageType}`;
-      li.appendChild(type);
-
-      if (item.description) {
-        const desc = document.createElement('p');
-        desc.textContent = item.description;
-        li.appendChild(desc);
-      }
-
-      if (item.tags && item.tags.length > 0) {
-        const tagList = document.createElement('div');
-        tagList.className = 'tag-list';
-        item.tags.forEach((tag) => {
-          const badge = document.createElement('span');
-          badge.className = 'tag';
-          badge.textContent = tag.name;
-          tagList.appendChild(badge);
-        });
-        li.appendChild(tagList);
-      }
-
-      els.itemsList.appendChild(li);
-    });
+  if (els.shareStatus) {
+    els.shareStatus.textContent = 'Loading share status…';
   }
+
+  if (els.shareLinkWrapper) {
+    els.shareLinkWrapper.hidden = true;
+  }
+
+  if (els.shareLinkInput) {
+    els.shareLinkInput.value = '';
+  }
+
+  if (els.shareCopy) {
+    els.shareCopy.disabled = true;
+    els.shareCopy.textContent = 'Copy';
+  }
+
+  if (els.shareCreate) {
+    els.shareCreate.disabled = true;
+  }
+
+  if (els.shareRotate) {
+    els.shareRotate.disabled = true;
+  }
+
+  if (els.shareRevoke) {
+    els.shareRevoke.disabled = true;
+  }
+
+  if (!preserveFilters) {
+    if (els.tagAddForm) {
+      els.tagAddForm.reset();
+    }
+
+    if (els.tagColorToggle) {
+      els.tagColorToggle.checked = false;
+    }
+
+    if (els.manualAddForm) {
+      els.manualAddForm.reset();
+    }
+
+    if (els.templateAddForm) {
+      els.templateAddForm.reset();
+    }
+  }
+
+  handleTagColorToggle();
+
+  const tags = Array.isArray(detail.tags) ? detail.tags : [];
+  renderTags(tags);
+  populateTagFilter(tags);
+
+  const nextFilters = preserveFilters ? { ...state.itemFilters } : { search: '', tagId: '' };
+  state.itemFilters = nextFilters;
+  updateItemsFiltersUI();
+  renderItems();
 }
 
 async function ensureTemplatesLoaded(gameId) {
@@ -278,31 +605,112 @@ async function loadShareStatus(listId) {
     updateSharePanel(status);
   } catch (error) {
     console.error('Failed to load share status', error);
-    els.shareStatus.textContent = `Unable to load share status: ${error.message}`;
+    if (els.shareStatus) {
+      els.shareStatus.textContent = `Unable to load share status: ${error.message}`;
+    }
+
+    if (els.shareLinkWrapper) {
+      els.shareLinkWrapper.hidden = true;
+    }
+
+    if (els.shareCreate) {
+      els.shareCreate.disabled = false;
+    }
+
+    if (els.shareRotate) {
+      els.shareRotate.disabled = true;
+    }
+
+    if (els.shareRevoke) {
+      els.shareRevoke.disabled = true;
+    }
+
+    if (els.shareCopy) {
+      els.shareCopy.disabled = true;
+      els.shareCopy.textContent = 'Copy';
+    }
+
+    if (els.shareLinkInput) {
+      els.shareLinkInput.value = '';
+    }
   }
 }
 
 function updateSharePanel(status) {
-  const isActive = Boolean(status.active);
+  const isActive = Boolean(status?.active);
 
   if (!isActive) {
-    els.shareStatus.textContent = 'This list is private.';
-    els.shareLinkWrapper.hidden = true;
-    els.shareCreate.disabled = false;
-    els.shareRotate.disabled = true;
-    els.shareRevoke.disabled = true;
+    if (els.shareStatus) {
+      els.shareStatus.textContent = 'This list is private.';
+    }
+
+    if (els.shareLinkWrapper) {
+      els.shareLinkWrapper.hidden = true;
+    }
+
+    if (els.shareCreate) {
+      els.shareCreate.disabled = false;
+    }
+
+    if (els.shareRotate) {
+      els.shareRotate.disabled = true;
+    }
+
+    if (els.shareRevoke) {
+      els.shareRevoke.disabled = true;
+    }
+
+    if (els.shareCopy) {
+      els.shareCopy.disabled = true;
+      els.shareCopy.textContent = 'Copy';
+    }
+
+    if (els.shareLinkInput) {
+      els.shareLinkInput.value = '';
+    }
+
     return;
   }
 
-  const token = status.token;
-  const uiLink = `${window.location.origin}/app/index.html#shared=${token}`;
+  const shareUrl =
+    status.shareUrl ??
+    (status.token ? `${window.location.origin}/app/index.html#shared=${status.token}` : '');
 
-  els.shareStatus.textContent = 'Sharing is active. Anyone with the link can view this list.';
-  els.shareLinkWrapper.hidden = false;
-  els.shareLinkInput.value = uiLink;
-  els.shareCreate.disabled = true;
-  els.shareRotate.disabled = false;
-  els.shareRevoke.disabled = false;
+  const createdAt = formatTimestamp(status.createdAt);
+  let message = 'Sharing is active. Anyone with the link can view this list.';
+
+  if (createdAt) {
+    message += ` Updated ${createdAt}.`;
+  }
+
+  if (els.shareStatus) {
+    els.shareStatus.textContent = message;
+  }
+
+  if (els.shareLinkWrapper) {
+    els.shareLinkWrapper.hidden = !shareUrl;
+  }
+
+  if (els.shareLinkInput) {
+    els.shareLinkInput.value = shareUrl;
+  }
+
+  if (els.shareCreate) {
+    els.shareCreate.disabled = true;
+  }
+
+  if (els.shareRotate) {
+    els.shareRotate.disabled = false;
+  }
+
+  if (els.shareRevoke) {
+    els.shareRevoke.disabled = false;
+  }
+
+  if (els.shareCopy) {
+    els.shareCopy.disabled = !shareUrl;
+    els.shareCopy.textContent = 'Copy';
+  }
 }
 
 async function handleCreateList(event) {
@@ -364,6 +772,92 @@ async function handleTemplateAdd(event) {
     event.currentTarget.reset();
   } catch (error) {
     alert(`Unable to add template: ${error.message}`);
+  }
+}
+
+async function handleTagAdd(event) {
+  event.preventDefault();
+
+  if (!state.selectedListId) {
+    return;
+  }
+
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  const name = (formData.get('name') ?? '').toString().trim();
+
+  if (!name) {
+    alert('Tag name is required.');
+    return;
+  }
+
+  const payload = { name };
+
+  if (els.tagColorToggle?.checked) {
+    const color = els.tagColorInput?.value;
+    if (color) {
+      payload.color = color;
+    }
+  }
+
+  try {
+    await apiFetch(`/v1/lists/${state.selectedListId}/tags`, { method: 'POST', body: payload });
+    alert('Tag proposal submitted for review.');
+    form.reset();
+
+    if (els.tagColorToggle) {
+      els.tagColorToggle.checked = false;
+    }
+
+    if (els.tagColorInput) {
+      els.tagColorInput.value = DEFAULT_TAG_COLOR;
+    }
+
+    handleTagColorToggle();
+  } catch (error) {
+    alert(`Unable to add tag: ${error.message}`);
+  }
+}
+
+function handleTagColorToggle() {
+  if (!els.tagColorToggle || !els.tagColorInput) {
+    return;
+  }
+
+  const enabled = els.tagColorToggle.checked;
+  els.tagColorInput.disabled = !enabled;
+
+  if (!enabled) {
+    els.tagColorInput.value = DEFAULT_TAG_COLOR;
+  }
+}
+
+function handleItemsFilterSearch(event) {
+  state.itemFilters = {
+    ...state.itemFilters,
+    search: event.target.value.trim(),
+  };
+  updateItemsFiltersUI();
+  renderItems();
+}
+
+function handleItemsFilterTag(event) {
+  state.itemFilters = {
+    ...state.itemFilters,
+    tagId: event.target.value,
+  };
+  updateItemsFiltersUI();
+  renderItems();
+}
+
+function clearItemFilters(event) {
+  event.preventDefault();
+  state.itemFilters = { search: '', tagId: '' };
+  updateItemsFiltersUI();
+  renderItems();
+
+  if (els.itemsFilterSearch) {
+    els.itemsFilterSearch.focus();
   }
 }
 
@@ -465,6 +959,16 @@ function renderSharedView(detail) {
   description.textContent = detail.description ?? 'No description provided.';
   els.sharedView.appendChild(description);
 
+  if (Array.isArray(detail.tags) && detail.tags.length > 0) {
+    const tagsSection = document.createElement('div');
+    tagsSection.className = 'shared-tags';
+    const tagsHeading = document.createElement('h5');
+    tagsHeading.textContent = 'Tags';
+    tagsSection.appendChild(tagsHeading);
+    appendTagList(tagsSection, detail.tags);
+    els.sharedView.appendChild(tagsSection);
+  }
+
   if (Array.isArray(detail.items) && detail.items.length > 0) {
     const list = document.createElement('ul');
     list.className = 'items-list';
@@ -480,8 +984,10 @@ function renderSharedView(detail) {
       }
       const type = document.createElement('p');
       type.className = 'muted';
-      type.textContent = `Type: ${item.storageType}`;
+      const storageLabel = describeStorageType(item.storageType);
+      type.textContent = `Type: ${storageLabel}`;
       li.appendChild(type);
+      appendTagList(li, Array.isArray(item.tags) ? item.tags : []);
       list.appendChild(li);
     });
     els.sharedView.appendChild(list);
@@ -499,6 +1005,11 @@ function bindEvents() {
   els.createListForm.addEventListener('submit', handleCreateList);
   els.manualAddForm.addEventListener('submit', handleManualAdd);
   els.templateAddForm.addEventListener('submit', handleTemplateAdd);
+  els.tagAddForm.addEventListener('submit', handleTagAdd);
+  els.tagColorToggle.addEventListener('change', handleTagColorToggle);
+  els.itemsFilterSearch.addEventListener('input', handleItemsFilterSearch);
+  els.itemsFilterTag.addEventListener('change', handleItemsFilterTag);
+  els.itemsFiltersClear.addEventListener('click', clearItemFilters);
   els.shareCreate.addEventListener('click', () => createShare(false));
   els.shareRotate.addEventListener('click', () => createShare(true));
   els.shareRevoke.addEventListener('click', revokeShare);
@@ -508,6 +1019,11 @@ function bindEvents() {
 
 async function init() {
   bindEvents();
+  handleTagColorToggle();
+  renderTags([]);
+  populateTagFilter([]);
+  updateItemsFiltersUI();
+  renderItems();
   await loadGames();
   await loadSharedViewFromHash();
 

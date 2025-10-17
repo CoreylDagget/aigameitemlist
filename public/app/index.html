@@ -127,9 +127,50 @@
                 <button type="submit">Propose new item</button>
               </form>
             </section>
-            <section>
-              <h4>Items</h4>
-              <p class="muted" id="items-hint">No items yet.</p>
+            <section class="stack" id="tag-management">
+              <div class="section-header">
+                <h4>Tags</h4>
+                <p class="muted">Group items for filtering and shared context.</p>
+              </div>
+              <p class="muted" id="tags-hint">No tags yet. Proposed tags appear after admin approval.</p>
+              <ul id="tags" class="tag-pill-list"></ul>
+              <form id="tag-add-form" class="inline-form tag-form">
+                <label>
+                  Name
+                  <input type="text" name="name" required minlength="1" />
+                </label>
+                <label class="checkbox checkbox-inline">
+                  <input type="checkbox" id="tag-color-toggle" />
+                  Add accent color
+                </label>
+                <label class="color-picker">
+                  Color
+                  <input type="color" id="tag-color-input" name="color" value="#38bdf8" disabled />
+                </label>
+                <button type="submit">Propose tag</button>
+              </form>
+            </section>
+            <section id="items-section">
+              <div class="section-header">
+                <h4>Items</h4>
+                <div class="filters" id="items-filters">
+                  <label>
+                    Search
+                    <input
+                      type="search"
+                      id="items-filter-search"
+                      placeholder="Search items…"
+                      autocomplete="off"
+                    />
+                  </label>
+                  <label>
+                    Tag
+                    <select id="items-filter-tag" disabled></select>
+                  </label>
+                  <button type="button" id="items-filters-clear" class="secondary" disabled>Clear</button>
+                </div>
+              </div>
+              <p class="muted" id="items-hint">Select a list to view its items.</p>
               <ul id="items" class="items-list"></ul>
             </section>
           </article>
