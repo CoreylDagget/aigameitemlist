@@ -32,11 +32,9 @@ jobs:
         run: composer phpstan
 
       - name: Run PHP_CodeSniffer
-        if: ${{ false }} # Temporarily disabled pending local lint fixes
         run: composer phpcs
 
       - name: Run PHP-CS-Fixer (dry run)
-        if: ${{ false }} # Temporarily disabled pending local lint fixes
         run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
       - name: Run PHPUnit with coverage thresholds
