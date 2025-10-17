@@ -22,7 +22,9 @@ final class RegisterAccountService
             throw new InvalidArgumentException('Account already exists');
         }
 
-        $passwordHash = password_hash($password, PASSWORD_ARGON2ID);
+        $algorithm = defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_DEFAULT;
+
+        $passwordHash = password_hash($password, $algorithm);
 
         if (!is_string($passwordHash)) {
             throw new InvalidArgumentException('Unable to hash password');

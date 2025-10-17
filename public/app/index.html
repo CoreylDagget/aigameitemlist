@@ -15,33 +15,43 @@
     <main class="app-main">
       <section class="card" id="auth-card">
         <h2>Authenticate</h2>
-        <div class="auth-forms">
+        <form id="login-form" class="stack" autocomplete="off">
+          <h3>Login</h3>
+          <label>
+            Email
+            <input type="email" name="email" required autocomplete="username" />
+          </label>
+          <label>
+            Password
+            <input type="password" name="password" required autocomplete="current-password" />
+          </label>
+          <button type="submit">Sign In</button>
+        </form>
+        <details id="register-details" class="auth-collapsible">
+          <summary>Need an account? Create one</summary>
           <form id="register-form" class="stack" autocomplete="off">
-            <h3>Register</h3>
             <label>
               Email
-              <input type="email" name="email" required />
+              <input type="email" name="email" required autocomplete="email" />
             </label>
             <label>
               Password
-              <input type="password" name="password" required minlength="8" />
+              <input
+                type="password"
+                name="password"
+                required
+                minlength="12"
+                autocomplete="new-password"
+              />
             </label>
             <button type="submit">Register &amp; Sign In</button>
+            <p class="hint small">Passwords must be at least 12 characters.</p>
           </form>
-          <form id="login-form" class="stack" autocomplete="off">
-            <h3>Login</h3>
-            <label>
-              Email
-              <input type="email" name="email" required />
-            </label>
-            <label>
-              Password
-              <input type="password" name="password" required />
-            </label>
-            <button type="submit">Sign In</button>
-          </form>
-        </div>
+        </details>
         <p class="hint" id="auth-status">Not authenticated.</p>
+        <p class="hint" id="demo-credentials">
+          Demo account:&nbsp;<code>demo@example.com</code> / <code>demo</code>
+        </p>
       </section>
 
       <section class="card" id="games-card" hidden>
