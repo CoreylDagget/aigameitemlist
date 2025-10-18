@@ -5,7 +5,11 @@ const state = {
   games: [],
   templatesByGame: new Map(),
   activeListDetail: null,
-  itemFilters: { search: '', tagId: '' },
+  itemFilters: { search: '', tagId: '', owned: 'all' },
+  entries: new Map(),
+  entrySaving: new Set(),
+  loadingEntries: false,
+  entriesError: null,
 };
 
 const DEFAULT_TAG_COLOR = '#38bdf8';
@@ -29,6 +33,7 @@ const els = {
   tagColorInput: document.querySelector('#tag-color-input'),
   itemsFilterSearch: document.querySelector('#items-filter-search'),
   itemsFilterTag: document.querySelector('#items-filter-tag'),
+  itemsFilterOwned: document.querySelector('#items-filter-owned'),
   itemsFiltersClear: document.querySelector('#items-filters-clear'),
   sharePanel: document.querySelector('#share-panel'),
   shareStatus: document.querySelector('#share-status'),
@@ -47,6 +52,7 @@ const els = {
   gameSelect: document.querySelector('#game-select'),
   sharedViewCard: document.querySelector('#shared-view-card'),
   sharedView: document.querySelector('#shared-view'),
+  entriesStatus: document.querySelector('#entries-status'),
 };
 
 async function apiFetch(path, { method = 'GET', body, auth = true } = {}) {
@@ -186,6 +192,232 @@ function describeStorageType(value) {
   }
 }
 
+function resetEntriesState() {
+  state.entries = new Map();
+  state.entrySaving = new Set();
+  state.loadingEntries = false;
+  state.entriesError = null;
+}
+
+function getEntryForItem(itemId) {
+  return state.entries.get(itemId) ?? null;
+}
+
+function isItemOwned(item, entry) {
+  if (!entry) {
+    return false;
+  }
+
+  switch (item.storageType) {
+    case 'boolean':
+      return Boolean(entry.value);
+    case 'count':
+      return Number(entry.value) > 0;
+    case 'text':
+      return (entry.value ?? '').toString().trim().length > 0;
+    default:
+      return Boolean(entry.value);
+  }
+}
+
+function createEntrySummary(item, entry, { isSaving }) {
+  const summary = document.createElement('p');
+  summary.className = 'entry-summary small';
+
+  if (isSaving) {
+    summary.textContent = 'Saving…';
+    return summary;
+  }
+
+  if (!entry) {
+    summary.textContent = 'Not set yet.';
+    return summary;
+  }
+
+  const timestamp = formatTimestamp(entry.updatedAt);
+  let message;
+
+  switch (item.storageType) {
+    case 'boolean':
+      message = entry.value ? 'Marked as owned.' : 'Marked as not owned.';
+      break;
+    case 'count':
+      message = `Current count: ${Number(entry.value)}`;
+      break;
+    case 'text': {
+      const note = (entry.value ?? '').toString();
+      message = note.trim() === '' ? 'Empty note saved.' : 'Note saved.';
+      break;
+    }
+    default:
+      message = 'Entry saved.';
+  }
+
+  if (timestamp) {
+    message += ` Updated ${timestamp}.`;
+  }
+
+  summary.textContent = message;
+  return summary;
+}
+
+function createEntryControls(item) {
+  const container = document.createElement('div');
+  container.className = 'item-entry';
+
+  const heading = document.createElement('p');
+  heading.className = 'muted small';
+  heading.textContent = 'Personal entry';
+  container.appendChild(heading);
+
+  if (state.entriesError) {
+    const error = document.createElement('p');
+    error.className = 'error small';
+    error.textContent = `Personal entries unavailable: ${state.entriesError}`;
+    container.appendChild(error);
+    return container;
+  }
+
+  const entry = getEntryForItem(item.id);
+  const isSaving = state.entrySaving.has(item.id);
+
+  if (state.loadingEntries && !entry && !isSaving) {
+    const loading = document.createElement('p');
+    loading.className = 'muted small';
+    loading.textContent = 'Loading…';
+    container.appendChild(loading);
+    return container;
+  }
+
+  if (item.storageType === 'boolean') {
+    const toggleLabel = document.createElement('label');
+    toggleLabel.className = 'checkbox';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = entry ? Boolean(entry.value) : false;
+    checkbox.disabled = isSaving;
+    toggleLabel.appendChild(checkbox);
+    toggleLabel.appendChild(document.createTextNode('Owned'));
+    container.appendChild(toggleLabel);
+
+    checkbox.addEventListener('change', (event) => {
+      saveEntry(item, event.target.checked);
+    });
+  } else if (item.storageType === 'count') {
+    const form = document.createElement('form');
+    form.className = 'entry-form';
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.step = '1';
+    input.inputMode = 'numeric';
+    if (entry?.value !== undefined && entry?.value !== null) {
+      input.value = Number(entry.value).toString();
+    }
+    input.disabled = isSaving;
+
+    const actions = document.createElement('div');
+    actions.className = 'entry-actions';
+
+    const saveButton = document.createElement('button');
+    saveButton.type = 'submit';
+    saveButton.textContent = isSaving ? 'Saving…' : 'Save';
+    saveButton.disabled = isSaving;
+    actions.appendChild(saveButton);
+
+    form.append(input, actions);
+    container.appendChild(form);
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (state.entrySaving.has(item.id)) {
+        return;
+      }
+
+      const raw = input.value.trim();
+
+      if (raw === '') {
+        alert('Enter a number (0 or greater) to save.');
+        return;
+      }
+
+      const parsed = Number.parseInt(raw, 10);
+
+      if (Number.isNaN(parsed) || parsed < 0) {
+        alert('Enter a number (0 or greater) to save.');
+        return;
+      }
+
+      saveEntry(item, parsed);
+    });
+  } else {
+    const form = document.createElement('form');
+    form.className = 'entry-form';
+
+    const textarea = document.createElement('textarea');
+    textarea.placeholder = 'Add notes about your ownership…';
+    textarea.value = entry?.value ? entry.value.toString() : '';
+    textarea.disabled = isSaving;
+
+    const actions = document.createElement('div');
+    actions.className = 'entry-actions';
+
+    const saveButton = document.createElement('button');
+    saveButton.type = 'submit';
+    saveButton.textContent = isSaving ? 'Saving…' : 'Save';
+    saveButton.disabled = isSaving;
+
+    const clearButton = document.createElement('button');
+    clearButton.type = 'button';
+    clearButton.className = 'secondary';
+    clearButton.textContent = 'Clear';
+    clearButton.disabled = isSaving;
+
+    clearButton.addEventListener('click', () => {
+      if (state.entrySaving.has(item.id)) {
+        return;
+      }
+
+      textarea.value = '';
+      saveEntry(item, '');
+    });
+
+    actions.append(saveButton, clearButton);
+    form.append(textarea, actions);
+    container.appendChild(form);
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (state.entrySaving.has(item.id)) {
+        return;
+      }
+
+      saveEntry(item, textarea.value);
+    });
+  }
+
+  container.appendChild(createEntrySummary(item, entry, { isSaving }));
+
+  return container;
+}
+
+function updateEntriesStatus() {
+  if (!els.entriesStatus) {
+    return;
+  }
+
+  if (state.entriesError) {
+    els.entriesStatus.hidden = false;
+    els.entriesStatus.textContent = `Personal entries unavailable: ${state.entriesError}`;
+  } else if (state.loadingEntries) {
+    els.entriesStatus.hidden = false;
+    els.entriesStatus.textContent = 'Loading personal entries…';
+  } else {
+    els.entriesStatus.hidden = true;
+    els.entriesStatus.textContent = '';
+  }
+}
+
 function populateTagFilter(tags = []) {
   if (!els.itemsFilterTag) {
     return;
@@ -231,8 +463,29 @@ function updateItemsFiltersUI() {
     els.itemsFilterTag.value = state.itemFilters.tagId ?? '';
   }
 
+  if (els.itemsFilterOwned) {
+    const allowed = ['all', 'owned', 'unowned'];
+    let desiredOwned = state.itemFilters.owned ?? 'all';
+
+    if (!allowed.includes(desiredOwned)) {
+      desiredOwned = 'all';
+    }
+
+    if (state.entriesError) {
+      desiredOwned = 'all';
+      state.itemFilters.owned = 'all';
+    }
+
+    state.itemFilters.owned = desiredOwned;
+    els.itemsFilterOwned.value = desiredOwned;
+    els.itemsFilterOwned.disabled = state.loadingEntries || state.entriesError !== null;
+  }
+
   if (els.itemsFiltersClear) {
-    const hasFilters = Boolean(state.itemFilters.search) || Boolean(state.itemFilters.tagId);
+    const hasFilters =
+      Boolean(state.itemFilters.search) ||
+      Boolean(state.itemFilters.tagId) ||
+      (state.itemFilters.owned && state.itemFilters.owned !== 'all');
     els.itemsFiltersClear.disabled = !hasFilters;
   }
 }
@@ -272,6 +525,8 @@ function renderItems() {
     return;
   }
 
+  updateEntriesStatus();
+
   const detail = state.activeListDetail;
 
   if (!detail) {
@@ -301,6 +556,17 @@ function renderItems() {
       ];
 
       return haystacks.some((value) => value.toLowerCase().includes(needle));
+    });
+  }
+
+  const ownedFilter = state.itemFilters.owned ?? 'all';
+
+  if (ownedFilter !== 'all' && !state.loadingEntries && !state.entriesError) {
+    filtered = filtered.filter((item) => {
+      const entry = getEntryForItem(item.id);
+      const owned = isItemOwned(item, entry);
+
+      return ownedFilter === 'owned' ? owned : !owned;
     });
   }
 
@@ -340,14 +606,68 @@ function renderItems() {
 
     appendTagList(li, Array.isArray(item.tags) ? item.tags : []);
 
+    li.appendChild(createEntryControls(item));
+
     els.itemsList.appendChild(li);
   });
+}
+
+async function loadEntries(listId) {
+  state.loadingEntries = true;
+  state.entriesError = null;
+  updateItemsFiltersUI();
+  renderItems();
+
+  try {
+    const response = await apiFetch(`/v1/lists/${listId}/entries`);
+    const entries = Array.isArray(response.data) ? response.data : [];
+    state.entries = new Map(entries.map((entry) => [entry.itemDefinitionId, entry]));
+  } catch (error) {
+    console.error('Failed to load entries', error);
+    state.entries = new Map();
+    state.entriesError = error instanceof Error ? error.message : 'Unknown error';
+  } finally {
+    state.loadingEntries = false;
+    updateItemsFiltersUI();
+    renderItems();
+  }
+}
+
+async function saveEntry(item, value) {
+  if (!state.selectedListId) {
+    return;
+  }
+
+  state.entrySaving.add(item.id);
+  updateItemsFiltersUI();
+  renderItems();
+
+  try {
+    const entry = await apiFetch(
+      `/v1/lists/${state.selectedListId}/entries/${item.id}`,
+      {
+        method: 'POST',
+        body: { value },
+      }
+    );
+
+    state.entries.set(item.id, entry);
+    state.entriesError = null;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    alert(`Unable to save entry: ${message}`);
+  } finally {
+    state.entrySaving.delete(item.id);
+    updateItemsFiltersUI();
+    renderItems();
+  }
 }
 
 function setAuthState(token, email) {
   if (token) {
     state.token = token;
     localStorage.setItem('gil_token', token);
+    resetEntriesState();
     els.authStatus.textContent = `Signed in as ${email ?? 'account'}.`;
     els.gamesCard.hidden = false;
     els.listsCard.hidden = false;
@@ -371,8 +691,9 @@ function setAuthState(token, email) {
     }
     state.lists = [];
     state.activeListDetail = null;
-    state.itemFilters = { search: '', tagId: '' };
+    state.itemFilters = { search: '', tagId: '', owned: 'all' };
     state.templatesByGame.clear();
+    resetEntriesState();
     renderLists();
     els.listDetail.hidden = true;
     renderTags([]);
@@ -454,7 +775,8 @@ async function refreshLists() {
         state.selectedListId = null;
         els.listDetail.hidden = true;
         state.activeListDetail = null;
-        state.itemFilters = { search: '', tagId: '' };
+        state.itemFilters = { search: '', tagId: '', owned: 'all' };
+        resetEntriesState();
         renderTags([]);
         populateTagFilter([]);
         updateItemsFiltersUI();
@@ -499,14 +821,26 @@ async function loadListDetail(listId, { preserveFilters = false } = {}) {
     return;
   }
 
+  resetEntriesState();
+  state.loadingEntries = true;
+  updateItemsFiltersUI();
+  updateEntriesStatus();
+
   try {
     const detail = await apiFetch(`/v1/lists/${listId}`);
     renderListDetail(detail, { preserveFilters });
-    await loadShareStatus(listId);
-    await ensureTemplatesLoaded(detail.game.id);
+    await Promise.all([
+      loadShareStatus(listId),
+      ensureTemplatesLoaded(detail.game.id),
+      loadEntries(listId),
+    ]);
   } catch (error) {
     console.error('Unable to load list', error);
     alert(`Unable to load list: ${error.message}`);
+    resetEntriesState();
+    updateItemsFiltersUI();
+    updateEntriesStatus();
+    renderItems();
   }
 }
 
@@ -575,7 +909,14 @@ function renderListDetail(detail, { preserveFilters = false } = {}) {
   renderTags(tags);
   populateTagFilter(tags);
 
-  const nextFilters = preserveFilters ? { ...state.itemFilters } : { search: '', tagId: '' };
+  const nextFilters = preserveFilters
+    ? { ...state.itemFilters }
+    : { search: '', tagId: '', owned: 'all' };
+
+  if (!('owned' in nextFilters)) {
+    nextFilters.owned = 'all';
+  }
+
   state.itemFilters = nextFilters;
   updateItemsFiltersUI();
   renderItems();
@@ -872,9 +1213,18 @@ function handleItemsFilterTag(event) {
   renderItems();
 }
 
+function handleItemsFilterOwned(event) {
+  state.itemFilters = {
+    ...state.itemFilters,
+    owned: event.target.value,
+  };
+  updateItemsFiltersUI();
+  renderItems();
+}
+
 function clearItemFilters(event) {
   event.preventDefault();
-  state.itemFilters = { search: '', tagId: '' };
+  state.itemFilters = { search: '', tagId: '', owned: 'all' };
   updateItemsFiltersUI();
   renderItems();
 
@@ -1031,6 +1381,7 @@ function bindEvents() {
   els.tagColorToggle.addEventListener('change', handleTagColorToggle);
   els.itemsFilterSearch.addEventListener('input', handleItemsFilterSearch);
   els.itemsFilterTag.addEventListener('change', handleItemsFilterTag);
+  els.itemsFilterOwned.addEventListener('change', handleItemsFilterOwned);
   els.itemsFiltersClear.addEventListener('click', clearItemFilters);
   els.shareCreate.addEventListener('click', () => createShare(false));
   els.shareRotate.addEventListener('click', () => createShare(true));

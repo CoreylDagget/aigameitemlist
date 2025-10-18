@@ -177,8 +177,17 @@
                     Tag
                     <select id="items-filter-tag" disabled></select>
                   </label>
+                  <label>
+                    Ownership
+                    <select id="items-filter-owned">
+                      <option value="all">All items</option>
+                      <option value="owned">With personal entry</option>
+                      <option value="unowned">Without personal entry</option>
+                    </select>
+                  </label>
                   <button type="button" id="items-filters-clear" class="secondary" disabled>Clear</button>
                 </div>
+                <p class="muted small" id="entries-status" hidden></p>
               </div>
               <p class="muted" id="items-hint">Select a list to view its items.</p>
               <ul id="items" class="items-list"></ul>
